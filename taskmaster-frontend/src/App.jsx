@@ -21,7 +21,8 @@
  */
 
 import { useState, useRef, useCallback, useEffect, createContext, useContext } from "react";
-import { useGoogleLogin } from "@react-oauth/google";
+// 1. Adicione o import no topo (junto com os outros imports)
+import { GoogleLogin } from "@react-oauth/google";
 import { soundNodeCreate, soundNodeComplete, soundSubtaskCreate, soundDelete } from "./sounds";
 
 // ═══════════════════════════════════════════════════════
@@ -1408,23 +1409,19 @@ function LoginScreen() {
     }).catch(() => Token.clear());
   }, []);
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (res) => {
-      setLoading(true); setError(null);
-      try {
-        const { token, user } = await api("/api/auth/google", {
-          method:"POST", body:{ credential: res.credential || res.access_token },
-        });
-        Token.set(token);
-        if (user.darkMode) setDark(true);
-        setUser(user);
-        setScreen("app");
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    },
-    onError: () => setError("Login Google falhou. Tente novamente."),
-  });
-
+const handleGoogleSuccess = async (res) => {
+  setLoading(true); setError(null);
+  try {
+    const { token, user } = await api("/api/auth/google", {
+      method: "POST", body: { credential: res.credential },
+    });
+    Token.set(token);
+    if (user.darkMode) setDark(true);
+    setUser(user);
+    setScreen("app");
+  } catch (e) { setError(e.message); }
+  finally { setLoading(false); }
+};
   const handleSkip = () => {
     setUser({ id:"anonymous",name:"Visitante",email:null,photo:null });
     setScreen("app");
@@ -1515,14 +1512,14 @@ function LoginScreen() {
               {error}
             </div>
           )}
-
-          <button onClick={() => googleLogin()} disabled={loading} className="tm-btn" style={{
-            display:"flex",alignItems:"center",justifyContent:"center",gap:12,
-            background:"linear-gradient(135deg,#10b981,#059669)",color:"white",border:"none",
-            cursor:loading?"wait":"pointer",borderRadius:14,padding:"14px 20px",
-            fontWeight:600,fontSize:15,boxShadow:"0 4px 18px rgba(16,185,129,0.32)",
-            width:"100%",opacity:loading?.8:1,fontFamily:"'DM Sans',sans-serif",
-          }}>
+<GoogleLogin
+  onSuccess={handleGoogleSuccess}
+  onError={() => setError("Login Google falhou. Tente novamente.")}
+  theme="filled_green"
+  size="large"
+  width="100%"
+  locale="pt-BR"
+/>
             {loading
               ? <span style={{ animation:"tmSpin 1s linear infinite",display:"inline-block" }}>⟳</span>
               : <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#fff" d="M44.5 20H24v8h11.7C34.1 33.1 29.6 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.2-2.7-.5-4z"/></svg>
