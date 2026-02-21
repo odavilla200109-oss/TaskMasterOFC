@@ -9,47 +9,127 @@
   --text-muted: #9ca3af;
   --green:      #10b981;
   --green-dark: #059669;
+  --node-bg:    rgba(255,255,255,0.97);
+  --node-shadow: 0 4px 20px rgba(16,185,129,0.14), 0 1px 4px rgba(0,0,0,0.05);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { scroll-behavior: smooth; }
+
 body {
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
 
 /* ── Animações globais ── */
 @keyframes tmBlink   { 0%,100%{opacity:1} 50%{opacity:0} }
-@keyframes tmFloat   { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-14px) rotate(1deg)} }
-@keyframes tmFadeUp  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-@keyframes tmScaleIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
-@keyframes tmNodeIn  { 0%{opacity:0;transform:scale(.7)} 100%{opacity:1;transform:scale(1)} }
-@keyframes tmPulse   { 0%,100%{opacity:1} 50%{opacity:.4} }
-@keyframes tmSpin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-@keyframes tmShake   { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
-
-/* ── Nó ── */
-.tm-node {
-  transition: box-shadow .2s, transform .15s;
+@keyframes tmFloat   {
+  0%,100%{transform:translateY(0) rotate(-0.8deg)}
+  33%{transform:translateY(-10px) rotate(0.6deg)}
+  66%{transform:translateY(-5px) rotate(-0.4deg)}
 }
-.tm-node:hover {
-  box-shadow: 0 10px 36px rgba(16,185,129,0.28), 0 2px 8px rgba(0,0,0,0.07) !important;
+@keyframes tmFadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes tmScaleIn { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+@keyframes tmNodeIn  {
+  0%  { opacity:0; transform:scale(.72) translateY(8px); }
+  60% { transform:scale(1.04) translateY(-2px); }
+  100%{ opacity:1; transform:scale(1) translateY(0); }
+}
+@keyframes tmPulse   { 0%,100%{opacity:1} 50%{opacity:.38} }
+@keyframes tmSpin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes tmShake   { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+@keyframes tmGlow    {
+  0%,100% { box-shadow: 0 0 0 0px rgba(16,185,129,0); }
+  50%     { box-shadow: 0 0 0 4px rgba(16,185,129,0.18); }
+}
+@keyframes tmSlideIn {
+  from { opacity:0; transform:translateX(-12px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+/* ── Nó raiz ── */
+.tm-node {
+  transition:
+    box-shadow .22s cubic-bezier(.4,0,.2,1),
+    transform  .18s cubic-bezier(.4,0,.2,1),
+    border-color .2s;
+}
+
+.tm-node:hover:not(.tm-selected) {
+  box-shadow:
+    0 14px 44px rgba(16,185,129,0.24),
+    0 4px 12px rgba(0,0,0,0.08),
+    0 0 0 1px rgba(16,185,129,0.14) !important;
+  transform: translateY(-3px) !important;
+  z-index: 30 !important;
+}
+
+.tm-node.tm-selected {
+  animation: tmGlow 2.4s ease infinite;
+  transform: scale(1.018) translateY(-1px) !important;
+  z-index: 50 !important;
+}
+
+.tm-node:active {
+  cursor: grabbing !important;
+  transform: scale(0.99) !important;
+}
+
+/* ── Nó filho (subtarefa) ── */
+.tm-child-node {
+  opacity: 0.96;
+}
+
+.tm-child-node:hover:not(.tm-selected) {
+  box-shadow:
+    0 8px 28px rgba(16,185,129,0.18),
+    0 2px 8px rgba(0,0,0,0.06) !important;
   transform: translateY(-2px) !important;
 }
-.tm-node:active { cursor: grabbing !important; }
 
 /* ── Botões ── */
 .tm-btn {
-  transition: all .16s cubic-bezier(.4,0,.2,1);
+  transition: all .18s cubic-bezier(.4,0,.2,1);
   font-family: 'DM Sans', sans-serif;
 }
-.tm-btn:hover  { transform: translateY(-2px); filter: brightness(1.07); }
-.tm-btn:active { transform: translateY(0px);  filter: brightness(.97); }
+
+.tm-btn:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+  filter: brightness(1.09);
+}
+
+.tm-btn:active:not(:disabled) {
+  transform: translateY(0.5px);
+  filter: brightness(.96);
+}
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: rgba(16,185,129,0.3); border-radius: 4px; }
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-thumb  { background: rgba(16,185,129,0.28); border-radius: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
 
 /* ── Input date ── */
-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.4); cursor: pointer; }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4);
+  cursor: pointer;
+}
+
+/* ── Sidebar scroll ── */
+.tm-sidebar::-webkit-scrollbar { width: 3px; }
+
+/* ── Seleção de texto no canvas ── */
+.tm-node input::selection {
+  background: rgba(16,185,129,0.25);
+}
+
+/* ── Focus rings acessíveis ── */
+.tm-btn:focus-visible {
+  outline: 2px solid rgba(16,185,129,0.7);
+  outline-offset: 2px;
+}
+
+/* ── Tooltip nativo aprimorado ── */
+[title] { cursor: pointer; }

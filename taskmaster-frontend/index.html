@@ -3,15 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="TaskMaster — Organize, priorize e conquiste." />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9802615381891784"
-     crossorigin="anonymous"></script>
+    <meta name="description" content="TaskMaster — Workspace visual para organização de tarefas e projetos." />
+    <meta name="theme-color" content="#10b981" />
+
     <title>TaskMaster</title>
+
     <link
       rel="icon"
       type="image/svg+xml"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>"
     />
+
+    <!--
+      Google Consent Mode v2 — DEVE vir ANTES do script do AdSense.
+      Define estado padrão como "negado" até o usuário aceitar no banner.
+    -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+
+      // Default: tudo negado (LGPD/GDPR compliance)
+      gtag('consent', 'default', {
+        analytics_storage:   'denied',
+        ad_storage:          'denied',
+        ad_user_data:        'denied',
+        ad_personalization:  'denied',
+        wait_for_update:     600,
+      });
+
+      // Se o usuário já aceitou em uma visita anterior, restaura imediatamente
+      (function () {
+        var stored = localStorage.getItem('tm_cookie_consent');
+        if (stored === 'granted') {
+          gtag('consent', 'update', {
+            analytics_storage:   'granted',
+            ad_storage:          'granted',
+            ad_user_data:        'granted',
+            ad_personalization:  'granted',
+          });
+        }
+      })();
+    </script>
+
+    <!-- Google AdSense — carrega APÓS o Consent Mode estar configurado -->
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9802615381891784"
+      crossorigin="anonymous"
+    ></script>
   </head>
   <body>
     <div id="root"></div>
