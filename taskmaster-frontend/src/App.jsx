@@ -21,7 +21,6 @@
  */
 
 import { useState, useRef, useCallback, useEffect, createContext, useContext } from "react";
-// 1. Adicione o import no topo (junto com os outros imports)
 import { GoogleLogin } from "@react-oauth/google";
 import { soundNodeCreate, soundNodeComplete, soundSubtaskCreate, soundDelete } from "./sounds";
 
@@ -1409,19 +1408,20 @@ function LoginScreen() {
     }).catch(() => Token.clear());
   }, []);
 
-const handleGoogleSuccess = async (res) => {
-  setLoading(true); setError(null);
-  try {
-    const { token, user } = await api("/api/auth/google", {
-      method: "POST", body: { credential: res.credential },
-    });
-    Token.set(token);
-    if (user.darkMode) setDark(true);
-    setUser(user);
-    setScreen("app");
-  } catch (e) { setError(e.message); }
-  finally { setLoading(false); }
-};
+  const handleGoogleSuccess = async (res) => {
+    setLoading(true); setError(null);
+    try {
+      const { token, user } = await api("/api/auth/google", {
+        method: "POST", body: { credential: res.credential },
+      });
+      Token.set(token);
+      if (user.darkMode) setDark(true);
+      setUser(user);
+      setScreen("app");
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
+  };
+
   const handleSkip = () => {
     setUser({ id:"anonymous",name:"Visitante",email:null,photo:null });
     setScreen("app");
@@ -1512,20 +1512,29 @@ const handleGoogleSuccess = async (res) => {
               {error}
             </div>
           )}
-<GoogleLogin
-  onSuccess={handleGoogleSuccess}
-  onError={() => setError("Login Google falhou. Tente novamente.")}
-  theme="filled_green"
-  size="large"
-  width="100%"
-  locale="pt-BR"
-/>
-            {loading
-              ? <span style={{ animation:"tmSpin 1s linear infinite",display:"inline-block" }}>⟳</span>
-              : <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#fff" d="M44.5 20H24v8h11.7C34.1 33.1 29.6 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.2-2.7-.5-4z"/></svg>
-            }
-            {loading ? "Entrando…" : "Entrar com Google"}
-          </button>
+
+          {loading ? (
+            <div style={{
+              display:"flex",alignItems:"center",justifyContent:"center",gap:10,
+              padding:"14px 20px",background:"rgba(16,185,129,0.08)",
+              borderRadius:14,border:"1px solid var(--border)",
+              fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"var(--text-muted)",
+            }}>
+              <span style={{ animation:"tmSpin 1s linear infinite",display:"inline-block",fontSize:18 }}>⟳</span>
+              Entrando…
+            </div>
+          ) : (
+            <div style={{ display:"flex",justifyContent:"center" }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Login Google falhou. Tente novamente.")}
+                theme="filled_green"
+                size="large"
+                locale="pt-BR"
+                width="328"
+              />
+            </div>
+          )}
 
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
             <div style={{ flex:1,height:1,background:"var(--border)" }}/>
