@@ -1,9 +1,13 @@
 /**
  * src/middleware/auth.js
  */
-const jwt = require("jsonwebtoken");
+const jwt    = require("jsonwebtoken");
 const { Users } = require("../db");
 
+/**
+ * Middleware que exige token JWT válido no header Authorization.
+ * Popula req.user com os dados do usuário do banco.
+ */
 function requireAuth(req, res, next) {
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer "))
@@ -12,7 +16,7 @@ function requireAuth(req, res, next) {
   const token = header.slice(7);
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = Users.findById.get(payload.sub);
+    const user    = Users.findById.get(payload.sub);
     if (!user) return res.status(401).json({ error: "Usuário não encontrado." });
     req.user = user;
     next();
@@ -22,6 +26,9 @@ function requireAuth(req, res, next) {
   }
 }
 
+/**
+ * Gera um JWT assinado para o usuário informado.
+ */
 function signToken(user) {
   return jwt.sign(
     { sub: user.id, email: user.email, name: user.name },

@@ -28,18 +28,20 @@ function playTone({ freq = 440, type = "sine", duration = 0.15, gain = 0.3, deca
     env.connect(c.destination);
     osc.start(c.currentTime);
     osc.stop(c.currentTime + duration + decay);
-  } catch {}
+  } catch (_) {
+    // Silencia erros de AudioContext (ex: política de autoplay do browser)
+  }
 }
 
 // Bloop suave ao criar um nó novo
 export function soundNodeCreate() {
-  playTone({ freq: 520, type: "sine",     duration: 0.12, gain: 0.25 });
+  playTone({ freq: 520, type: "sine", duration: 0.12, gain: 0.25 });
   setTimeout(() => playTone({ freq: 780, type: "sine", duration: 0.10, gain: 0.15 }), 80);
 }
 
 // Pop dopaminérgico ao concluir tarefa
 export function soundNodeComplete() {
-  playTone({ freq: 440, type: "sine",     duration: 0.08, gain: 0.2 });
+  playTone({ freq: 440, type: "sine", duration: 0.08, gain: 0.2 });
   setTimeout(() => playTone({ freq: 660, type: "sine", duration: 0.08, gain: 0.2 }),  60);
   setTimeout(() => playTone({ freq: 880, type: "sine", duration: 0.12, gain: 0.25 }), 120);
 }

@@ -5,8 +5,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    // Redireciona /shared/* para index.html (SPA routing)
-    historyApiFallback: true,
+    // Nota: historyApiFallback é do webpack-dev-server, não do Vite.
+    // O roteamento SPA em dev funciona automaticamente com o Vite.
+    // Em produção, o vercel.json cuida dos rewrites.
   },
   preview: {
     port: 5173,

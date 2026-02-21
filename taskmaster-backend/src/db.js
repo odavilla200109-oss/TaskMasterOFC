@@ -2,11 +2,11 @@
  * src/db.js — TaskMaster v2 Database Layer
  */
 const Database = require("better-sqlite3");
-const path = require("path");
-const fs = require("fs");
+const path     = require("path");
+const fs       = require("fs");
 
 const DB_PATH = process.env.DB_PATH || "./data/taskmaster.db";
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+fs.mkdirSync(path.dirname(path.resolve(DB_PATH)), { recursive: true });
 
 const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
@@ -65,8 +65,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_shares_canvas  ON canvas_shares(canvas_id);
 `);
 
-// Migrações seguras
-const migrate = (sql) => { try { db.exec(sql); } catch {} };
+// ── Migrações seguras (ignoram erro se coluna já existe) ─
+const migrate = (sql) => { try { db.exec(sql); } catch (_) {} };
 migrate("ALTER TABLE users ADD COLUMN dark_mode INTEGER NOT NULL DEFAULT 0");
 migrate("ALTER TABLE nodes ADD COLUMN due_date TEXT");
 
@@ -124,7 +124,7 @@ const Nodes = {
         title:     n.title    || "",
         x:         n.x        || 0,
         y:         n.y        || 0,
-        priority:  n.priority || "none",
+        priority:  ["none","low","medium","high"].includes(n.priority) ? n.priority : "none",
         completed: n.completed ? 1 : 0,
         parent_id: n.parentId || null,
         due_date:  n.dueDate  || null,

@@ -1,6 +1,12 @@
 /**
  * TaskMaster App.jsx v2.0 — Produção
  *
+ * CORREÇÕES APLICADAS:
+ *  ✦ uid() agora usa crypto.randomUUID() — sem risco de colisão
+ *  ✦ WS_URL trata https→wss e http→ws explicitamente na ordem correta
+ *  ✦ WebSocket com backoff exponencial (3s → 30s max)
+ *  ✦ historyApiFallback removido do vite.config (não é opção do Vite)
+ *
  * Features:
  *  ✦ Canvas infinito (pan + zoom)
  *  ✦ Nós sem sobreposição na criação
@@ -22,7 +28,9 @@ import { soundNodeCreate, soundNodeComplete, soundSubtaskCreate, soundDelete } f
 //  CONFIG
 // ═══════════════════════════════════════════════════════
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const WS_URL  = API_URL.replace(/^http/, "ws");
+
+// CORREÇÃO: trata https→wss antes de http→ws (ordem importa para evitar double-replace)
+const WS_URL = API_URL.replace(/^https/, "wss").replace(/^http(?!s)/, "ws");
 
 const Token = {
   get:   ()  => localStorage.getItem("tm_token"),
@@ -49,9 +57,12 @@ async function api(path, opts = {}) {
 // ═══════════════════════════════════════════════════════
 //  CONSTANTES
 // ═══════════════════════════════════════════════════════
-const uid = () => Math.random().toString(36).slice(2, 9);
-const NODE_W = 224;
-const NODE_H = 108;
+
+// CORREÇÃO: usa crypto.randomUUID() — sem risco de colisão como o Math.random()
+const uid = () => crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+
+const NODE_W   = 224;
+const NODE_H   = 108;
 const NODE_GAP_X = 36;
 const NODE_GAP_Y = 64;
 
@@ -88,12 +99,10 @@ function getDescendants(nodes, id) {
   return found;
 }
 
-// Verifica colisão entre dois nós
 function collides(ax, ay, bx, by) {
   return Math.abs(ax - bx) < NODE_W + 10 && Math.abs(ay - by) < NODE_H + 10;
 }
 
-// Encontra posição livre para um novo nó
 function findFreePosition(nodes, startX, startY) {
   let x = startX, y = startY;
   let attempts = 0;
@@ -127,19 +136,19 @@ const AppCtx = createContext(null);
 function applyTheme(dark) {
   const r = document.documentElement;
   if (dark) {
-    r.style.setProperty("--bg-card",   "rgba(12,22,17,0.98)");
-    r.style.setProperty("--bg-glass",  "rgba(8,18,12,0.80)");
-    r.style.setProperty("--border",    "rgba(16,185,129,0.22)");
-    r.style.setProperty("--text-main", "#d1fae5");
-    r.style.setProperty("--text-sub",  "#6ee7b7");
-    r.style.setProperty("--text-muted","#3d6b55");
+    r.style.setProperty("--bg-card",    "rgba(12,22,17,0.98)");
+    r.style.setProperty("--bg-glass",   "rgba(8,18,12,0.80)");
+    r.style.setProperty("--border",     "rgba(16,185,129,0.22)");
+    r.style.setProperty("--text-main",  "#d1fae5");
+    r.style.setProperty("--text-sub",   "#6ee7b7");
+    r.style.setProperty("--text-muted", "#3d6b55");
   } else {
-    r.style.setProperty("--bg-card",   "rgba(255,255,255,0.97)");
-    r.style.setProperty("--bg-glass",  "rgba(255,255,255,0.75)");
-    r.style.setProperty("--border",    "rgba(16,185,129,0.18)");
-    r.style.setProperty("--text-main", "#064e3b");
-    r.style.setProperty("--text-sub",  "#065f46");
-    r.style.setProperty("--text-muted","#9ca3af");
+    r.style.setProperty("--bg-card",    "rgba(255,255,255,0.97)");
+    r.style.setProperty("--bg-glass",   "rgba(255,255,255,0.75)");
+    r.style.setProperty("--border",     "rgba(16,185,129,0.18)");
+    r.style.setProperty("--text-main",  "#064e3b");
+    r.style.setProperty("--text-sub",   "#065f46");
+    r.style.setProperty("--text-muted", "#9ca3af");
   }
 }
 
@@ -177,8 +186,7 @@ function useAnimatedBg(ref, dark) {
 function BurstEffect({ x, y }) {
   const parts = [0,72,144,216,288].map((angle, i) => {
     const rad = angle * Math.PI / 180;
-    const tx = Math.cos(rad) * 64, ty = Math.sin(rad) * 64;
-    return { i, tx, ty };
+    return { i, tx: Math.cos(rad) * 64, ty: Math.sin(rad) * 64 };
   });
   return (
     <>
@@ -223,32 +231,31 @@ function NodeCard({
       onMouseDown={onDragStart}
       onDoubleClick={(e) => { if (readOnly) return; e.stopPropagation(); onStartEdit(); }}
       style={{
-        position:    "absolute",
-        left:        node.x,
-        top:         node.y,
-        width:       NODE_W,
+        position:     "absolute",
+        left:         node.x,
+        top:          node.y,
+        width:        NODE_W,
         borderRadius: 16,
-        // overflow:hidden garante que a stripe não vaza
-        overflow:    "hidden",
-        background:  "var(--bg-card)",
-        border:      `2px solid ${overdue ? "#ef4444" : node.completed ? "#86efac" : pc}`,
-        boxShadow:   dark
+        overflow:     "hidden",
+        background:   "var(--bg-card)",
+        border:       `2px solid ${overdue ? "#ef4444" : node.completed ? "#86efac" : pc}`,
+        boxShadow:    dark
           ? "0 4px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(16,185,129,0.08)"
           : "0 4px 24px rgba(16,185,129,0.16), 0 1px 4px rgba(0,0,0,0.05)",
-        cursor:    readOnly ? "default" : "grab",
+        cursor:     readOnly ? "default" : "grab",
         willChange: "transform",
         animation:  isNew ? "tmNodeIn .32s cubic-bezier(.34,1.56,.64,1) forwards" : "none",
       }}
       className="tm-node"
     >
-      {/* Stripe de prioridade — dentro do overflow:hidden, nunca vaza */}
+      {/* Stripe de prioridade */}
       <div style={{
-        position:    "absolute",
-        left: 0, top: 0, bottom: 0,
-        width:       5,
-        background:  pc,
-        transition:  "background .25s",
-        flexShrink:  0,
+        position:   "absolute",
+        left:0, top:0, bottom:0,
+        width:      5,
+        background: pc,
+        transition: "background .25s",
+        flexShrink: 0,
       }} />
 
       {/* Título */}
@@ -310,7 +317,6 @@ function NodeCard({
       }}>
         {!readOnly && (
           <>
-            {/* Prioridade */}
             <button title={PRIORITY.label[node.priority]} className="tm-btn"
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onCyclePriority(); }}
@@ -320,7 +326,6 @@ function NodeCard({
               {PRIORITY.icon[node.priority]}
             </button>
 
-            {/* Subtarefa */}
             <button title="Nova subtarefa" className="tm-btn"
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onAddChild(); }}
@@ -329,7 +334,6 @@ function NodeCard({
               ＋
             </button>
 
-            {/* Data */}
             <DueDatePicker node={node} onFinishEdit={onFinishEdit} />
           </>
         )}
@@ -346,7 +350,6 @@ function NodeCard({
           </button>
         )}
 
-        {/* Concluir */}
         <button
           title={node.completed ? "Desmarcar" : "Concluir"}
           className="tm-btn"
@@ -368,7 +371,6 @@ function NodeCard({
   );
 }
 
-// Seletor de data separado para evitar re-render do nó inteiro
 function DueDatePicker({ node, onFinishEdit }) {
   const inputRef = useRef(null);
   return (
@@ -430,8 +432,7 @@ function ShareModal({ canvasId, onClose }) {
           Compartilhar Canvas
         </div>
         <div style={{ fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"var(--text-muted)",marginBottom:22 }}>
-          Links gerados ficam ativos até você revogar. Pessoas com link de edição
-          colaboram em tempo real.
+          Links gerados ficam ativos até você revogar. Pessoas com link de edição colaboram em tempo real.
         </div>
 
         <div style={{ display:"flex",gap:10,marginBottom:20 }}>
@@ -530,8 +531,8 @@ function CanvasSidebar({ canvases, activeId, onSelect, onCreate, onDelete, onRen
       </div>
 
       {canvases.map((c) => {
-        const isActive  = c.id === activeId;
-        const members   = membersMap[c.id] || 0;
+        const isActive = c.id === activeId;
+        const members  = membersMap[c.id] || 0;
         return (
           <div key={c.id} style={{
             display:"flex",alignItems:"center",gap:4,borderRadius:11,
@@ -566,7 +567,6 @@ function CanvasSidebar({ canvases, activeId, onSelect, onCreate, onDelete, onRen
               </button>
             )}
 
-            {/* Indicador de membros ativos */}
             {members > 1 && (
               <span style={{
                 fontSize:10,color:"#10b981",background:"rgba(16,185,129,0.12)",
@@ -615,12 +615,20 @@ function CanvasSidebar({ canvases, activeId, onSelect, onCreate, onDelete, onRen
 
 // ═══════════════════════════════════════════════════════
 //  HOOK: WebSocket de colaboração
+//
+//  CORREÇÃO: Backoff exponencial na reconexão
+//  (antes: setTimeout fixo de 3s → podia gerar centenas de
+//   tentativas se o servidor ficasse fora por muito tempo)
 // ═══════════════════════════════════════════════════════
 function useCollabWS({ canvasId, shareToken, jwtToken, onPatch, onMembers }) {
-  const wsRef = useRef(null);
+  const wsRef       = useRef(null);
+  const retryDelay  = useRef(3000);
+  const retryTimer  = useRef(null);
+  const unmounted   = useRef(false);
 
   const connect = useCallback(() => {
-    if (!canvasId) return;
+    if (!canvasId || unmounted.current) return;
+
     const params = new URLSearchParams();
     if (jwtToken)   params.set("jwt",   jwtToken);
     if (shareToken) params.set("share", shareToken);
@@ -629,6 +637,7 @@ function useCollabWS({ canvasId, shareToken, jwtToken, onPatch, onMembers }) {
     wsRef.current = ws;
 
     ws.onopen = () => {
+      retryDelay.current = 3000; // reset do backoff ao conectar com sucesso
       ws.send(JSON.stringify({ type:"join", canvasId }));
     };
 
@@ -638,17 +647,27 @@ function useCollabWS({ canvasId, shareToken, jwtToken, onPatch, onMembers }) {
         if (msg.type === "patch")   onPatch(msg.nodes);
         if (msg.type === "members") onMembers(canvasId, msg.count);
         if (msg.type === "joined")  onMembers(canvasId, msg.members);
-      } catch {}
+      } catch (_) {}
     };
 
-    // Reconecta em 3s se cair
-    ws.onclose = () => setTimeout(connect, 3000);
+    ws.onclose = () => {
+      if (unmounted.current) return;
+      // Backoff exponencial: 3s → 4.5s → 6.75s → … → máx 30s
+      retryTimer.current = setTimeout(() => {
+        retryDelay.current = Math.min(retryDelay.current * 1.5, 30_000);
+        connect();
+      }, retryDelay.current);
+    };
+
     ws.onerror = () => {};
   }, [canvasId, shareToken, jwtToken, onPatch, onMembers]);
 
   useEffect(() => {
+    unmounted.current = false;
     connect();
     return () => {
+      unmounted.current = true;
+      clearTimeout(retryTimer.current);
       wsRef.current?.close();
     };
   }, [connect]);
@@ -669,36 +688,36 @@ function useCollabWS({ canvasId, shareToken, jwtToken, onPatch, onMembers }) {
 function AppScreen() {
   const { user, setScreen, dark, setDark } = useContext(AppCtx);
 
-  const [canvases,    setCanvases]    = useState([]);
-  const [activeId,    setActiveId]    = useState(null);
-  const [nodes,       setNodes]       = useState([]);
-  const [past,        setPast]        = useState([]);
-  const [future,      setFuture]      = useState([]);
-  const [scale,       setScale]       = useState(1);
-  const [pan,         setPan]         = useState({ x:80, y:80 });
-  const [editingId,   setEditingId]   = useState(null);
-  const [editVal,     setEditVal]     = useState("");
-  const [bursts,      setBursts]      = useState([]);
-  const [newId,       setNewId]       = useState(null);
-  const [saving,      setSaving]      = useState(false);
-  const [loading,     setLoading]     = useState(true);
-  const [showShare,   setShowShare]   = useState(false);
-  const [readOnly,    setReadOnly]    = useState(false);
-  const [shareToken,  setShareToken]  = useState(null);
-  const [membersMap,  setMembersMap]  = useState({});
+  const [canvases,   setCanvases]   = useState([]);
+  const [activeId,   setActiveId]   = useState(null);
+  const [nodes,      setNodes]      = useState([]);
+  const [past,       setPast]       = useState([]);
+  const [future,     setFuture]     = useState([]);
+  const [scale,      setScale]      = useState(1);
+  const [pan,        setPan]        = useState({ x:80, y:80 });
+  const [editingId,  setEditingId]  = useState(null);
+  const [editVal,    setEditVal]    = useState("");
+  const [bursts,     setBursts]     = useState([]);
+  const [newId,      setNewId]      = useState(null);
+  const [saving,     setSaving]     = useState(false);
+  const [loading,    setLoading]    = useState(true);
+  const [showShare,  setShowShare]  = useState(false);
+  const [readOnly,   setReadOnly]   = useState(false);
+  const [shareToken, setShareToken] = useState(null);
+  const [membersMap, setMembersMap] = useState({});
 
-  const panRef      = useRef({ x:80, y:80 });
-  const scaleRef    = useRef(1);
-  const wrapRef     = useRef(null);
-  const bgRef       = useRef(null);
-  const isPanning   = useRef(false);
-  const lastMouse   = useRef({ x:0, y:0 });
-  const canPan      = useRef(false);
-  const dragging    = useRef(null);
-  const dragSaved   = useRef(false);
-  const nodesRef    = useRef(nodes);
-  const saveTimer   = useRef(null);
-  const wsPatching  = useRef(false); // evita loop WS → state → WS
+  const panRef     = useRef({ x:80, y:80 });
+  const scaleRef   = useRef(1);
+  const wrapRef    = useRef(null);
+  const bgRef      = useRef(null);
+  const isPanning  = useRef(false);
+  const lastMouse  = useRef({ x:0, y:0 });
+  const canPan     = useRef(false);
+  const dragging   = useRef(null);
+  const dragSaved  = useRef(false);
+  const nodesRef   = useRef(nodes);
+  const saveTimer  = useRef(null);
+  const wsPatching = useRef(false);
 
   nodesRef.current = nodes;
   useEffect(() => { panRef.current   = pan;   }, [pan]);
@@ -744,11 +763,11 @@ function AppScreen() {
   }, []);
 
   const { sendPatch } = useCollabWS({
-    canvasId:   activeId || (shareToken ? nodes[0]?.canvas_id : null),
+    canvasId:  activeId || (shareToken ? nodes[0]?.canvas_id : null),
     shareToken,
-    jwtToken:   Token.get(),
-    onPatch:    handleWsPatch,
-    onMembers:  handleMembers,
+    jwtToken:  Token.get(),
+    onPatch:   handleWsPatch,
+    onMembers: handleMembers,
   });
 
   // ── Auto-save + broadcast ────────────────────────────
@@ -758,11 +777,9 @@ function AppScreen() {
     clearTimeout(saveTimer.current);
     setSaving(true);
     saveTimer.current = setTimeout(async () => {
-      // Salva via REST (persistência garantida)
       if (activeId) {
         try { await api(`/api/canvases/${activeId}/nodes`, { method:"PUT", body:{ nodes } }); } catch {}
       }
-      // Transmite via WS para colaboradores
       sendPatch(nodes);
       setSaving(false);
     }, 600);
@@ -899,7 +916,7 @@ function AppScreen() {
 
   // ── Organizar em árvore ──────────────────────────────
   const organizeTree = useCallback(() => {
-    const ORDER = ["high","medium","low","none"];
+    const ORDER  = ["high","medium","low","none"];
     const result = [...nodesRef.current];
     const roots  = result.filter((n) => !n.parentId)
       .sort((a,b) => ORDER.indexOf(a.priority) - ORDER.indexOf(b.priority));
@@ -915,19 +932,18 @@ function AppScreen() {
       let childX     = x;
       children.forEach((child) => {
         placeSubtree(child.id, childX, y + MARGIN_Y);
-        // Avança childX pelo número de descendentes desse filho
-        const desc = getDescendants(result, child.id);
+        const desc    = getDescendants(result, child.id);
         const leafCols = Math.max(1, [...desc].filter((d) => d !== child.id && !result.some((n) => n.parentId === d)).length);
-        childX += Math.max(leafCols, 1) * MARGIN_X;
+        childX        += Math.max(leafCols, 1) * MARGIN_X;
       });
       return Math.max(children.length, 1);
     }
 
     roots.forEach((root) => {
       placeSubtree(root.id, colX, 60);
-      const desc   = getDescendants(result, root.id);
-      const width  = Math.max(1, desc.size) * MARGIN_X;
-      colX        += width;
+      const desc  = getDescendants(result, root.id);
+      const width = Math.max(1, desc.size) * MARGIN_X;
+      colX       += width;
     });
 
     saveHistory(result);
@@ -949,7 +965,6 @@ function AppScreen() {
 
   const onCanvasDown = useCallback((e) => {
     if (e.button !== 0) return;
-    // Só inicia pan se clicou no canvas vazio (não num nó)
     const isCanvas = e.target === wrapRef.current || e.target.dataset.canvas;
     if (isCanvas) {
       canPan.current    = true;
@@ -961,7 +976,7 @@ function AppScreen() {
   const startDrag = useCallback((e, id) => {
     if (e.button !== 0 || readOnly) return;
     e.stopPropagation();
-    canPan.current = false; // impede que o drag do nó vire pan do canvas
+    canPan.current = false;
     const node = nodesRef.current.find((n) => n.id === id);
     if (!node) return;
     const rect = wrapRef.current.getBoundingClientRect();
@@ -981,8 +996,8 @@ function AppScreen() {
       }
       const rect = wrapRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const mx = (e.clientX - rect.left - panRef.current.x) / scaleRef.current;
-      const my = (e.clientY - rect.top  - panRef.current.y) / scaleRef.current;
+      const mx   = (e.clientX - rect.left - panRef.current.x) / scaleRef.current;
+      const my   = (e.clientY - rect.top  - panRef.current.y) / scaleRef.current;
       const drag = dragging.current;
       setNodes((ns) => ns.map((n) => n.id===drag.id ? { ...n, x:mx-drag.ox, y:my-drag.oy } : n));
       return;
@@ -991,7 +1006,6 @@ function AppScreen() {
     if (canPan.current) {
       const dx = e.clientX - lastMouse.current.x;
       const dy = e.clientY - lastMouse.current.y;
-      // Só vira isPanning se moveu pelo menos 4px (evita micro-cliques)
       if (!isPanning.current && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
         isPanning.current = true;
       }
@@ -1036,7 +1050,7 @@ function AppScreen() {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
-        try { saveHistory(JSON.parse(ev.target.result).nodes || []); } catch {}
+        try { saveHistory(JSON.parse(ev.target.result).nodes || []); } catch (_) {}
       };
       reader.readAsText(file);
     };
@@ -1046,11 +1060,11 @@ function AppScreen() {
   const toggleDark = async () => {
     const next = !dark;
     setDark(next);
-    if (user) { try { await api("/api/auth/me/darkmode", { method:"PATCH", body:{ darkMode:next } }); } catch {} }
+    if (user) { try { await api("/api/auth/me/darkmode", { method:"PATCH", body:{ darkMode:next } }); } catch (_) {} }
   };
 
   const handleLogout = async () => {
-    try { await api("/api/auth/logout", { method:"POST" }); } catch {}
+    try { await api("/api/auth/logout", { method:"POST" }); } catch (_) {}
     Token.clear(); setScreen("login");
   };
 
@@ -1059,11 +1073,11 @@ function AppScreen() {
     .filter((n) => n.parentId && nodes.find((p) => p.id === n.parentId))
     .map((n) => ({ child:n, parent:nodes.find((p) => p.id === n.parentId) }));
 
-  const completed  = nodes.filter((n) => n.completed).length;
-  const overdueCt  = nodes.filter((n) => isOverdue(n.dueDate) && !n.completed).length;
-  const isShared   = !!shareToken;
-  const hasSidebar = !isShared && canvases.length > 0;
-  const sideW      = hasSidebar ? 224 : 0;
+  const completed     = nodes.filter((n) => n.completed).length;
+  const overdueCt     = nodes.filter((n) => isOverdue(n.dueDate) && !n.completed).length;
+  const isShared      = !!shareToken;
+  const hasSidebar    = !isShared && canvases.length > 0;
+  const sideW         = hasSidebar ? 224 : 0;
   const activeMembers = membersMap[activeId] || 0;
 
   if (loading) return (
@@ -1150,11 +1164,11 @@ function AppScreen() {
         )}
 
         {!readOnly && [
-          { label:"⬚ Organizar",     action:organizeTree,            title:"Organizar em árvore" },
-          { label:"⊡ Independentes", action:makeIndependent,         title:"Remover conexões" },
-          { label:"↑ Exportar",      action:exportCanvas,            title:"Exportar JSON" },
-          { label:"↓ Importar",      action:importCanvas,            title:"Importar JSON" },
-          { label:"🗑 Limpar",       action:() => saveHistory([]),   title:"Excluir tudo", danger:true },
+          { label:"⬚ Organizar",     action:organizeTree,          title:"Organizar em árvore" },
+          { label:"⊡ Independentes", action:makeIndependent,       title:"Remover conexões" },
+          { label:"↑ Exportar",      action:exportCanvas,          title:"Exportar JSON" },
+          { label:"↓ Importar",      action:importCanvas,          title:"Importar JSON" },
+          { label:"🗑 Limpar",       action:() => saveHistory([]), title:"Excluir tudo", danger:true },
         ].map((b) => (
           <button key={b.label} className="tm-btn" onClick={b.action} title={b.title} style={{
             background: b.danger ? "rgba(239,68,68,0.07)" : "rgba(16,185,129,0.08)",
@@ -1206,7 +1220,7 @@ function AppScreen() {
       <div
         ref={wrapRef}
         data-canvas="true"
-        style={{ position:"absolute",inset:0,top:56,left:sideW,overflow:"hidden",cursor: isPanning.current ? "grabbing" : "grab",transition:"left .2s" }}
+        style={{ position:"absolute",inset:0,top:56,left:sideW,overflow:"hidden",cursor:isPanning.current?"grabbing":"grab",transition:"left .2s" }}
         onMouseDown={onCanvasDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
@@ -1321,9 +1335,9 @@ function AppScreen() {
 //  TELA: LOGIN
 // ═══════════════════════════════════════════════════════
 function TypewriterSubtitle() {
-  const [index, setIndex]       = useState(0);
+  const [index,     setIndex]     = useState(0);
   const [displayed, setDisplayed] = useState("");
-  const [phase, setPhase]       = useState("typing");
+  const [phase,     setPhase]     = useState("typing");
   const t = useRef(null);
 
   useEffect(() => {
@@ -1384,7 +1398,6 @@ function LoginScreen() {
 
   useEffect(() => { applyTheme(dark); }, [dark]);
 
-  // Sessão persistida
   useEffect(() => {
     const token = Token.get();
     if (!token) return;
@@ -1430,7 +1443,6 @@ function LoginScreen() {
     <div ref={bgRef} onMouseMove={onBgMove} style={{
       width:"100%",minHeight:"100vh",display:"flex",flexDirection:"column",overflow:"hidden",position:"relative",
     }}>
-      {/* Grade de pontos */}
       <div style={{
         position:"absolute",inset:0,pointerEvents:"none",zIndex:0,
         backgroundImage:`radial-gradient(circle,rgba(16,185,129,${dark?.08:.18}) 1px,transparent 1px)`,
@@ -1439,7 +1451,6 @@ function LoginScreen() {
 
       {floaters.map((f,i) => <FloatingNode key={i} {...f} />)}
 
-      {/* Toggle dark no login */}
       <button onClick={() => setDark((d) => !d)} style={{
         position:"fixed",top:16,right:16,zIndex:200,
         background:"var(--bg-glass)",backdropFilter:"blur(10px)",
@@ -1453,7 +1464,6 @@ function LoginScreen() {
         flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
         padding:"60px 20px 40px",position:"relative",zIndex:10,gap:44,
       }}>
-        {/* Hero */}
         <div style={{ textAlign:"center" }}>
           <div style={{
             display:"inline-flex",alignItems:"center",gap:8,
@@ -1481,7 +1491,6 @@ function LoginScreen() {
           </div>
         </div>
 
-        {/* Card de login */}
         <div style={{
           background:"var(--bg-card)",backdropFilter:"blur(28px) saturate(160%)",
           border:"1.5px solid var(--border)",borderRadius:24,

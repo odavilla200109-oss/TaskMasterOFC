@@ -18,7 +18,7 @@ const canvasRoutes = require("./src/routes/canvases");
 const { initWebSocket } = require("./src/ws");
 
 // ── Validação de env ────────────────────────────────────
-["JWT_SECRET","GOOGLE_CLIENT_ID"].forEach((k) => {
+["JWT_SECRET", "GOOGLE_CLIENT_ID"].forEach((k) => {
   if (!process.env[k]) {
     console.error(`❌  Variável de ambiente ausente: ${k}`);
     process.exit(1);
@@ -35,43 +35,56 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
 
 app.use(cors({
   origin: (origin, cb) => {
+    // Permite requisições sem origin (ex: curl, Postman, mobile apps)
     if (!origin || allowedOrigins.includes(origin)) cb(null, true);
     else cb(new Error(`CORS bloqueado: ${origin}`));
   },
-  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
 
 // ── Segurança ───────────────────────────────────────────
 app.use(helmet());
-app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+
+// Morgan: em produção usa formato "combined" mas omite rota /health
+// para evitar logs excessivos de health checks do Railway
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev", {
+  skip: (req) => req.path === "/health",
+}));
 
 // ── Rate limiting ───────────────────────────────────────
 app.use(rateLimit({
-  windowMs: 60_000, max: 300,
-  standardHeaders: true, legacyHeaders: false,
-  message: { error: "Muitas requisições." },
+  windowMs: 60_000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Muitas requisições. Tente novamente em breve." },
 }));
 
 const authLimiter = rateLimit({
-  windowMs: 60_000, max: 15,
-  message: { error: "Muitas tentativas de login." },
+  windowMs: 60_000,
+  max: 15,
+  message: { error: "Muitas tentativas de login. Aguarde 1 minuto." },
 });
 
 app.use(express.json({ limit: "4mb" }));
 
 // ── Health ──────────────────────────────────────────────
-app.get("/health", (_, res) => res.json({ status: "ok", version: "2.0.0", time: new Date().toISOString() }));
+app.get("/health", (_, res) =>
+  res.json({ status: "ok", version: "2.0.0", time: new Date().toISOString() })
+);
 
 // ── Rotas ───────────────────────────────────────────────
 app.use("/api/auth",     authLimiter, authRoutes);
 app.use("/api/canvases", canvasRoutes);
 
 // ── 404 ─────────────────────────────────────────────────
-app.use((req, res) => res.status(404).json({ error: `Rota não encontrada: ${req.method} ${req.path}` }));
+app.use((req, res) =>
+  res.status(404).json({ error: `Rota não encontrada: ${req.method} ${req.path}` })
+);
 
-// ── Errors ──────────────────────────────────────────────
+// ── Tratamento global de erros ──────────────────────────
 app.use((err, req, res, _next) => {
   console.error("[Error]", err.message);
   if (err.message?.includes("CORS")) return res.status(403).json({ error: err.message });
@@ -91,6 +104,6 @@ server.listen(PORT, () => {
 ╠══════════════════════════════════════╣
 ║  HTTP: http://localhost:${PORT}         ║
 ║  WS:   ws://localhost:${PORT}/ws       ║
-║  Env:  ${(process.env.NODE_ENV||"development").padEnd(27)}║
+║  Env:  ${(process.env.NODE_ENV || "development").padEnd(27)}║
 ╚══════════════════════════════════════╝`);
 });
