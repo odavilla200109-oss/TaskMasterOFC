@@ -1,59 +1,139 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="TaskMaster — Workspace visual para organização de tarefas e projetos." />
-    <meta name="theme-color" content="#10b981" />
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <title>TaskMaster</title>
+  <!-- ═══════════════════════════════════════
+       TITLE & META SEO
+  ════════════════════════════════════════ -->
+  <title>TaskMaster – Organize suas ideias e projetos</title>
 
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>"
-    />
+  <meta name="description" content="TaskMaster é a alternativa gratuita ao MindMeister, Notion e Trello. Crie workspaces visuais de tarefas e brainstorm, colabore em tempo real e exporte seus projetos com facilidade."/>
+  <meta name="keywords" content="taskmaster, organização de tarefas, brainstorm online, alternativa mindmeister, alternativa notion, alternativa trello, mapa mental gratuito, gestão de projetos, colaboração em tempo real, produtividade"/>
+  <meta name="author" content="TaskMaster"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="theme-color" content="#10b981"/>
+  <meta name="color-scheme" content="light dark"/>
 
-    <!--
-      Google Consent Mode v2 — DEVE vir ANTES do script do AdSense.
-      Define estado padrão como "negado" até o usuário aceitar no banner.
-    -->
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
+  <!-- Canonical -->
+  <link rel="canonical" href="https://usetaskmaster.vercel.app/"/>
 
-      // Default: tudo negado (LGPD/GDPR compliance)
-      gtag('consent', 'default', {
-        analytics_storage:   'denied',
-        ad_storage:          'denied',
-        ad_user_data:        'denied',
-        ad_personalization:  'denied',
-        wait_for_update:     600,
-      });
+  <!-- ═══════════════════════════════════════
+       FAVICON / ICONS
+  ════════════════════════════════════════ -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
 
-      // Se o usuário já aceitou em uma visita anterior, restaura imediatamente
-      (function () {
-        var stored = localStorage.getItem('tm_cookie_consent');
-        if (stored === 'granted') {
-          gtag('consent', 'update', {
-            analytics_storage:   'granted',
-            ad_storage:          'granted',
-            ad_user_data:        'granted',
-            ad_personalization:  'granted',
-          });
-        }
-      })();
-    </script>
+  <!-- ═══════════════════════════════════════
+       OPEN GRAPH (Facebook, LinkedIn, etc.)
+  ════════════════════════════════════════ -->
+  <meta property="og:type"        content="website"/>
+  <meta property="og:url"         content="https://usetaskmaster.vercel.app/"/>
+  <meta property="og:title"       content="TaskMaster – Organize suas ideias e projetos"/>
+  <meta property="og:description" content="Alternativa gratuita ao MindMeister e Notion. Crie tarefas, brainstorms e colabore em tempo real."/>
+  <meta property="og:image"       content="https://usetaskmaster.vercel.app/og-image.png"/>
+  <meta property="og:locale"      content="pt_BR"/>
+  <meta property="og:site_name"   content="TaskMaster"/>
 
-    <!-- Google AdSense — carrega APÓS o Consent Mode estar configurado -->
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9802615381891784"
-      crossorigin="anonymous"
-    ></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+  <!-- ═══════════════════════════════════════
+       TWITTER CARD
+  ════════════════════════════════════════ -->
+  <meta name="twitter:card"        content="summary_large_image"/>
+  <meta name="twitter:title"       content="TaskMaster – Organize suas ideias e projetos"/>
+  <meta name="twitter:description" content="Alternativa gratuita ao MindMeister, Notion e Trello. Colaboração em tempo real."/>
+  <meta name="twitter:image"       content="https://usetaskmaster.vercel.app/og-image.png"/>
+
+  <!-- ═══════════════════════════════════════
+       STRUCTURED DATA (JSON-LD)
+  ════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TaskMaster",
+    "url": "https://usetaskmaster.vercel.app/",
+    "description": "Alternativa gratuita ao MindMeister, Notion e Trello. Organize tarefas e brainstorms visualmente com colaboração em tempo real.",
+    "applicationCategory": "ProductivityApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "BRL"
+    },
+    "featureList": [
+      "Workspaces de tarefas visuais",
+      "Brainstorm com nós conectados",
+      "Colaboração em tempo real",
+      "Compartilhamento por link",
+      "Exportação e importação",
+      "Modo escuro",
+      "Gratuito"
+    ],
+    "alternativeOf": ["MindMeister", "Notion", "Trello"],
+    "inLanguage": "pt-BR"
+  }
+  </script>
+
+  <!-- ═══════════════════════════════════════
+       GOOGLE CONSENT MODE v2
+       Padrão negado (LGPD compliance)
+       Deve vir ANTES de qualquer tag Google
+  ════════════════════════════════════════ -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+
+    // Default: tudo negado até o usuário escolher
+    gtag('consent', 'default', {
+      analytics_storage:   'denied',
+      ad_storage:          'denied',
+      ad_user_data:        'denied',
+      ad_personalization:  'denied',
+      wait_for_update:     600,
+    });
+
+    // Restaura escolha anterior (persiste até limpar cache)
+    (function() {
+      var stored = localStorage.getItem('tm_cookie_consent');
+      if (stored === 'granted') {
+        gtag('consent', 'update', {
+          analytics_storage:   'granted',
+          ad_storage:          'granted',
+          ad_user_data:        'granted',
+          ad_personalization:  'granted',
+        });
+      }
+    })();
+  </script>
+
+  <!-- Google Tag Manager (carrega após Consent Mode) -->
+  <!-- Adicione o GTM ID abaixo quando disponível -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script> -->
+
+  <!-- ═══════════════════════════════════════
+       GOOGLE ADSENSE
+       Carrega após Consent Mode estar definido
+  ════════════════════════════════════════ -->
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9802615381891784"
+    crossorigin="anonymous">
+  </script>
+
+  <!-- ═══════════════════════════════════════
+       PRECONNECT
+  ════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="preconnect" href="https://accounts.google.com"/>
+
+  <!-- ═══════════════════════════════════════
+       SITEMAP HINT (para crawlers)
+  ════════════════════════════════════════ -->
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml"/>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
 </html>

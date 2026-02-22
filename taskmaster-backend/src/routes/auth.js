@@ -1,5 +1,6 @@
 /**
- * src/routes/auth.js
+ * src/routes/auth.js — v3
+ * Novidades: DELETE /me (LGPD — apaga conta completa)
  */
 const express          = require("express");
 const { OAuth2Client } = require("google-auth-library");
@@ -10,8 +11,7 @@ const { signToken, requireAuth } = require("../middleware/auth");
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// ── POST /api/auth/google ────────────────────────────────
-// Recebe o credential do Google OAuth e retorna JWT + dados do usuário
+// ── POST /api/auth/google ────────────────────────────
 router.post("/google", async (req, res) => {
   const { credential } = req.body;
   if (!credential) return res.status(400).json({ error: "credential obrigatório." });
@@ -34,18 +34,15 @@ router.post("/google", async (req, res) => {
     let user = Users.findByGoogleId.get(googleId);
 
     if (!user) {
-      // Verifica se já existe conta com o mesmo e-mail (login anterior sem Google)
       const byEmail = Users.findByEmail.get(email);
       if (byEmail) {
         user = Users.update.get({ id: byEmail.id, name, photo: photo || null });
       } else {
-        // Cria usuário novo + canvas inicial
         const id = randomUUID();
         user = Users.create.get({ id, google_id: googleId, name, email, photo: photo || null });
-        Canvases.create.get({ id: randomUUID(), user_id: id, name: "Meu Workspace" });
+        Canvases.create.get({ id: randomUUID(), user_id: id, name: "Meu Workspace", type: "task" });
       }
     } else {
-      // Atualiza nome e foto sempre que fizer login
       user = Users.update.get({ id: user.id, name, photo: photo || null });
     }
 
@@ -65,26 +62,34 @@ router.post("/google", async (req, res) => {
   }
 });
 
-// ── GET /api/auth/me ─────────────────────────────────────
-// Retorna dados do usuário autenticado (útil para validar token no reload)
+// ── GET /api/auth/me ─────────────────────────────────
 router.get("/me", requireAuth, (req, res) => {
   const { id, name, email, photo, dark_mode } = req.user;
   res.json({ id, name, email, photo, darkMode: dark_mode === 1 });
 });
 
-// ── PATCH /api/auth/me/darkmode ──────────────────────────
-// Persiste preferência de tema escuro no banco
+// ── PATCH /api/auth/me/darkmode ──────────────────────
 router.patch("/me/darkmode", requireAuth, (req, res) => {
   const dark = req.body.darkMode ? 1 : 0;
   Users.setDarkMode.run({ id: req.user.id, dark_mode: dark });
   res.json({ darkMode: dark === 1 });
 });
 
-// ── POST /api/auth/logout ────────────────────────────────
-// JWTs são stateless — o cliente deve descartar o token localmente.
-// Esta rota existe apenas para compatibilidade e logging.
+// ── POST /api/auth/logout ────────────────────────────
 router.post("/logout", requireAuth, (req, res) => {
   res.json({ message: "Logout realizado." });
+});
+
+// ── DELETE /api/auth/me — LGPD ───────────────────────
+// Exclui o usuário e TODOS os seus dados (CASCADE no banco)
+router.delete("/me", requireAuth, (req, res) => {
+  try {
+    Users.deleteAll.run(req.user.id);
+    res.json({ message: "Conta e dados excluídos com sucesso." });
+  } catch (err) {
+    console.error("[Auth/Delete]", err);
+    res.status(500).json({ error: "Erro ao excluir conta." });
+  }
 });
 
 module.exports = router;
