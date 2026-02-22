@@ -8,7 +8,7 @@ export function NodeCard({
   node,dark,isEditing,editVal,setEditVal,
   onFinishEdit,onStartEdit,onDelete,onComplete,
   onCyclePriority,onAddChild,onDragStart,
-  isNew,readOnly,isSelected,onSelect,isChild,
+  isNew,readOnly,isSelected,onSelect,isChild,onAddSibling,
 }) {
   const inputRef=useRef(null);
   const [pop,setPop]=useState(false);
@@ -50,7 +50,7 @@ export function NodeCard({
         {isEditing?(
           <input ref={inputRef} value={editVal} onChange={e=>setEditVal(e.target.value)}
             onBlur={()=>onFinishEdit(editVal)}
-            onKeyDown={e=>{if(e.key==="Enter")onFinishEdit(editVal);if(e.key==="Escape")onFinishEdit(node.title||"");}}
+            onKeyDown={e=>{if(e.key==="Enter"){onFinishEdit(editVal);if(!isChild&&editVal.trim())onAddSibling?.();}if(e.key==="Escape")onFinishEdit(node.title||"");}}
             onMouseDown={e=>e.stopPropagation()}
             placeholder="Nome da tarefa…"
             style={{width:"100%",border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:isChild?12:13,color:"var(--text-main)"}}/>
