@@ -11,10 +11,10 @@ const helmet    = require("helmet");
 const morgan    = require("morgan");
 const rateLimit = require("express-rate-limit");
 
-const authRoutes    = require("./src/routes/auth");
-const canvasRoutes  = require("./src/routes/canvases");
-const reportRoutes  = require("./src/routes/reports");
-const { initWebSocket } = require("./src/ws");
+const authRoutes    = require("./routes/auth");
+const canvasRoutes  = require("./routes/canvases");
+const reportRoutes  = require("./routes/reports");
+const { initWebSocket } = require("./ws");
 
 ["JWT_SECRET", "GOOGLE_CLIENT_ID"].forEach((k) => {
   if (!process.env[k]) {
