@@ -6,7 +6,8 @@ export function applyTheme(dark) {
     r.style.setProperty("--border",     "rgba(16,185,129,0.17)");
     r.style.setProperty("--text-main",  "#d1fae5");
     r.style.setProperty("--text-sub",   "#6ee7b7");
-    r.style.setProperty("--text-muted", "#3d6b55");
+    // Mantém contraste mínimo para ícones e labels secundárias no tema escuro.
+    r.style.setProperty("--text-muted", "#7aa892");
     r.style.setProperty("--node-bg",    "rgba(8,18,13,0.97)");
     r.style.setProperty("--node-shadow","0 4px 28px rgba(0,0,0,.55),0 0 0 1px rgba(16,185,129,.07)");
   } else {

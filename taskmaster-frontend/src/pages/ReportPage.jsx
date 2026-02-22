@@ -23,9 +23,9 @@ export function ReportPage() {
   };
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg-card)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 20px",fontFamily:"'DM Sans',sans-serif"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg-card)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 20px",fontFamily:"'Inter',sans-serif"}}>
       <div style={{width:"100%",maxWidth:480,background:"var(--bg-glass)",border:"1.5px solid var(--border)",borderRadius:24,padding:"36px 38px",boxShadow:"0 12px 48px rgba(0,0,0,.15)"}}>
-        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:28,color:"var(--text-main)",marginBottom:4}}>TaskMaster</div>
+        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:900,fontSize:28,color:"var(--text-main)",marginBottom:4}}>TaskMaster</div>
         <MTitle>Reportar um erro</MTitle>
         <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:22,lineHeight:1.6}}>
           Nos ajude a melhorar descrevendo o problema que encontrou.
@@ -35,7 +35,7 @@ export function ReportPage() {
         {sent?(
           <div style={{textAlign:"center",padding:"28px 0"}}>
             <div style={{fontSize:44,marginBottom:14}}>✅</div>
-            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:17,color:"var(--text-main)",marginBottom:8}}>Report enviado!</div>
+            <div style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:17,color:"var(--text-main)",marginBottom:8}}>Report enviado!</div>
             <p style={{fontSize:13,color:"var(--text-muted)",lineHeight:1.6}}>
               Estamos trabalhando para melhorar o TaskMaster, agradecemos sua compreensão.
             </p>
@@ -47,13 +47,13 @@ export function ReportPage() {
               <label style={{display:"block",fontSize:12.5,fontWeight:600,color:"var(--text-sub)",marginBottom:6}}>Descreva o erro *</label>
               <textarea value={msg} onChange={e=>setMsg(e.target.value)} rows={5}
                 placeholder="O que aconteceu? Quais passos levaram ao erro?"
-                style={{width:"100%",background:"transparent",border:"1.5px solid var(--border)",borderRadius:12,padding:"12px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"var(--text-main)",outline:"none",resize:"vertical",boxSizing:"border-box",lineHeight:1.55}}/>
+                style={{width:"100%",background:"transparent",border:"1.5px solid var(--border)",borderRadius:12,padding:"12px 14px",fontFamily:"'Inter',sans-serif",fontSize:13,color:"var(--text-main)",outline:"none",resize:"vertical",boxSizing:"border-box",lineHeight:1.55}}/>
             </div>
             <div style={{marginBottom:16}}>
               <label style={{display:"block",fontSize:12.5,fontWeight:600,color:"var(--text-sub)",marginBottom:6}}>E-mail de contato (opcional)</label>
               <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
                 placeholder="Para retorno da equipe"
-                style={{width:"100%",background:"transparent",border:"1.5px solid var(--border)",borderRadius:12,padding:"11px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"var(--text-main)",outline:"none",boxSizing:"border-box"}}/>
+                style={{width:"100%",background:"transparent",border:"1.5px solid var(--border)",borderRadius:12,padding:"11px 14px",fontFamily:"'Inter',sans-serif",fontSize:13,color:"var(--text-main)",outline:"none",boxSizing:"border-box"}}/>
             </div>
             {error&&<div style={{color:"#f87171",fontSize:12.5,marginBottom:10}}>{error}</div>}
             <button onClick={submit} disabled={loading} className="tm-btn" style={{width:"100%",background:"linear-gradient(135deg,#10b981,#059669)",color:"white",border:"none",borderRadius:12,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",opacity:loading?.6:1}}>

@@ -43,9 +43,9 @@ export function BrainNodeCard({node,dark,onDragStart,onDelete,onColorChange,isSe
           onKeyDown={e=>{if(e.key==="Enter")onFinishEdit(editVal);if(e.key==="Escape")onFinishEdit(node.title||"");}}
           onMouseDown={e=>e.stopPropagation()}
           placeholder={node.isRoot?"Ideia central…":"Expandir ideia…"}
-          style={{width:"80%",border:"none",outline:"none",background:"transparent",fontFamily:"'DM Sans',sans-serif",fontWeight:node.isRoot?700:500,fontSize:node.isRoot?13:12,color:node.isRoot?c:"var(--text-main)",textAlign:"center"}}/>
+          style={{width:"80%",border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontWeight:node.isRoot?700:500,fontSize:node.isRoot?13:12,color:node.isRoot?c:"var(--text-main)",textAlign:"center"}}/>
       ):(
-        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:node.isRoot?13.5:12,fontWeight:node.isRoot?700:500,color:node.isRoot?c:"var(--text-main)",textAlign:"center",padding:"0 14px",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",lineHeight:1.35}}>
+        <span style={{fontFamily:"'Inter',sans-serif",fontSize:node.isRoot?13.5:12,fontWeight:node.isRoot?700:500,color:node.isRoot?c:"var(--text-main)",textAlign:"center",padding:"0 14px",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",lineHeight:1.35}}>
           {node.title||<span style={{opacity:.35,fontStyle:"italic"}}>{node.isRoot?"ideia central":"expandir…"}</span>}
         </span>
       )}

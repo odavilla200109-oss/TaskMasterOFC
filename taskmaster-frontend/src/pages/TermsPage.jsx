@@ -6,10 +6,10 @@ export function TermsPage() {
   const {dark}=useContext(AppCtx);
   useEffect(()=>{applyTheme(dark);},[dark]);
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg-card)",padding:"60px 20px",fontFamily:"'DM Sans',sans-serif"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg-card)",padding:"60px 20px",fontFamily:"'Inter',sans-serif"}}>
       <div style={{maxWidth:720,margin:"0 auto"}}>
         <a href="/" style={{fontSize:13,color:"#10b981",textDecoration:"none",marginBottom:28,display:"inline-block"}}>← Voltar</a>
-        <h1 style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:36,color:"var(--text-main)",marginBottom:6}}>Termos de Uso</h1>
+        <h1 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:900,fontSize:36,color:"var(--text-main)",marginBottom:6}}>Termos de Uso</h1>
         <p style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:36}}>Última atualização: {new Date().getFullYear()}</p>
         {[
           ["1. Aceitação","Ao usar o TaskMaster, você concorda com estes termos. O uso continuado após alterações constitui aceitação das novas condições."],
@@ -21,7 +21,7 @@ export function TermsPage() {
           ["7. Contato","Para dúvidas sobre estes termos, entre em contato: davilla200109@gmail.com"],
         ].map(([t,c])=>(
           <div key={t} style={{marginBottom:28}}>
-            <h2 style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:18,color:"var(--text-main)",marginBottom:8}}>{t}</h2>
+            <h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:18,color:"var(--text-main)",marginBottom:8}}>{t}</h2>
             <p style={{fontSize:14,color:"var(--text-sub)",lineHeight:1.7,margin:0}}>{c}</p>
           </div>
         ))}

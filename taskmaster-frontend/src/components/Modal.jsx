@@ -9,5 +9,5 @@ export function Modal({onClose,children,maxW=460}) {
 }
 
 export function MTitle({children}) {
-  return <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:18,color:"var(--text-main)",marginBottom:6}}>{children}</div>;
+  return <div style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:800,fontSize:18,color:"var(--text-main)",marginBottom:6}}>{children}</div>;
 }

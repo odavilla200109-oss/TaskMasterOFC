@@ -16,7 +16,7 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
             <Ic.ChevR s={13}/>
           </button>
           {canvases.map(c=>(
-            <button key={c.id} onClick={()=>onSelect(c.id)} title={c.name} className="tm-btn" style={{width:28,height:28,borderRadius:"50%",border:`2px solid ${c.id===activeId?"#10b981":"var(--border)"}`,background:c.id===activeId?"rgba(16,185,129,.15)":"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto",color:c.id===activeId?"#10b981":"var(--text-muted)",fontSize:11,fontWeight:700,fontFamily:"'Syne',sans-serif",transition:"all .15s"}}>
+            <button key={c.id} onClick={()=>onSelect(c.id)} title={c.name} className="tm-btn" style={{width:28,height:28,borderRadius:"50%",border:`2px solid ${c.id===activeId?"#10b981":"var(--border)"}`,background:c.id===activeId?"rgba(16,185,129,.15)":"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto",color:c.id===activeId?"#10b981":"var(--text-muted)",fontSize:11,fontWeight:700,fontFamily:"'Space Grotesk',sans-serif",transition:"all .15s"}}>
               {c.type==="brain"?<Ic.Brain s={12} c={c.id===activeId?"#10b981":"var(--text-muted)"}/>:c.name[0]?.toUpperCase()}
             </button>
           ))}
@@ -24,7 +24,7 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
       ):(
         <>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"2px 8px 6px",marginBottom:2}}>
-            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,fontWeight:700,color:"var(--text-muted)",letterSpacing:1.8,textTransform:"uppercase"}}>
+            <span style={{fontFamily:"'Inter',sans-serif",fontSize:10,fontWeight:700,color:"var(--text-muted)",letterSpacing:1.8,textTransform:"uppercase"}}>
               Workspaces ({canvases.length}/{MAX_WS})
             </span>
             <button onClick={onToggle} className="tm-btn" title="Recolher" style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:"2px",display:"flex"}}>
@@ -47,15 +47,15 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
                   <input autoFocus value={renameVal} onChange={e=>setRenameVal(e.target.value)}
                     onBlur={()=>{onRename(c.id,renameVal);setRenaming(null);}}
                     onKeyDown={e=>{if(e.key==="Enter"){onRename(c.id,renameVal);setRenaming(null);}if(e.key==="Escape")setRenaming(null);}}
-                    style={{flex:1,border:"none",outline:"none",background:"transparent",fontFamily:"'DM Sans',sans-serif",fontSize:12.5,color:"var(--text-main)",padding:"6px 3px"}}/>
+                    style={{flex:1,border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontSize:12.5,color:"var(--text-main)",padding:"6px 3px"}}/>
                 ):(
                   <button onClick={()=>onSelect(c.id)} onDoubleClick={()=>{setRenaming(c.id);setRenameVal(c.name);}}
-                    style={{flex:1,background:"none",border:"none",cursor:"pointer",textAlign:"left",fontFamily:"'DM Sans',sans-serif",fontSize:12.5,fontWeight:active?600:400,color:active?"#10b981":"var(--text-main)",padding:"6px 4px",borderRadius:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    style={{flex:1,background:"none",border:"none",cursor:"pointer",textAlign:"left",fontFamily:"'Inter',sans-serif",fontSize:12.5,fontWeight:active?600:400,color:active?"#10b981":"var(--text-main)",padding:"6px 4px",borderRadius:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                     {c.name}
                   </button>
                 )}
                 {c.hasViewIndefLock&&<span title="Link ∞ ativo" style={{flexShrink:0,fontSize:8.5,color:"#f59e0b",opacity:.8}}>∞</span>}
-                {members>1&&<span style={{fontSize:9.5,color:"#10b981",background:"rgba(16,185,129,.12)",borderRadius:20,padding:"1px 5px",fontWeight:600,flexShrink:0,fontFamily:"'DM Sans',sans-serif"}}>{members}</span>}
+                {members>1&&<span style={{fontSize:9.5,color:"#10b981",background:"rgba(16,185,129,.12)",borderRadius:20,padding:"1px 5px",fontWeight:600,flexShrink:0,fontFamily:"'Inter',sans-serif"}}>{members}</span>}
                 {canvases.length>1&&(
                   <button onClick={()=>onDelete(c.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#f87171",display:"flex",alignItems:"center",padding:"3px",borderRadius:5,opacity:.4,flexShrink:0,transition:"opacity .15s"}}
                     onMouseEnter={e=>e.currentTarget.style.opacity="1"}
@@ -67,14 +67,14 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
             );
           })}
 
-          <button onClick={()=>onCreate("task")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{marginTop:8,background:"rgba(16,185,129,.07)",border:"1.5px dashed rgba(16,185,129,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:500,color:"#10b981",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+          <button onClick={()=>onCreate("task")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{marginTop:8,background:"rgba(16,185,129,.07)",border:"1.5px dashed rgba(16,185,129,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:500,color:"#10b981",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
             <Ic.Plus s={11}/>Tarefa
           </button>
-          <button onClick={()=>onCreate("brain")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{background:"rgba(139,92,246,.07)",border:"1.5px dashed rgba(139,92,246,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:500,color:"#8b5cf6",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+          <button onClick={()=>onCreate("brain")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{background:"rgba(139,92,246,.07)",border:"1.5px dashed rgba(139,92,246,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:500,color:"#8b5cf6",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
             <Ic.Brain s={12} c="#8b5cf6"/>Brainstorm
           </button>
-          {canvases.length>=MAX_WS&&<div style={{fontSize:10.5,color:"var(--text-muted)",textAlign:"center",fontFamily:"'DM Sans',sans-serif",padding:"3px 6px",lineHeight:1.5}}>Limite de {MAX_WS} atingido</div>}
-          <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:9.5,color:"var(--text-muted)",textAlign:"center",paddingTop:2}}>Duplo clique para renomear</div>
+          {canvases.length>=MAX_WS&&<div style={{fontSize:10.5,color:"var(--text-muted)",textAlign:"center",fontFamily:"'Inter',sans-serif",padding:"3px 6px",lineHeight:1.5}}>Limite de {MAX_WS} atingido</div>}
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:9.5,color:"var(--text-muted)",textAlign:"center",paddingTop:2}}>Duplo clique para renomear</div>
         </>
       )}
     </div>
