@@ -1,29 +1,13 @@
 /**
- * src/ws.js — Motor de colaboração em tempo real
- *
- * CORREÇÕES APLICADAS:
- * - formatNodes removida (agora importada de src/utils/formatNodes.js)
- *
- * Protocolo de mensagens (JSON):
- *   Cliente → Servidor:
- *     { type: "join",   canvasId }
- *     { type: "patch",  canvasId, nodes }
- *     { type: "ping" }
- *
- *   Servidor → Cliente:
- *     { type: "patch",  nodes, from }   ← broadcast para outros membros
- *     { type: "joined", canvasId, nodes, mode, members }
- *     { type: "members", count }
- *     { type: "pong" }
- *     { type: "error",  message }
+ * src/ws.js — v3
+ * Suporte a canvas de tipo 'task' e 'brain'.
+ * Brain nodes: patch via { type: "brain-patch", nodes }
  */
-
 const { WebSocketServer } = require("ws");
 const jwt = require("jsonwebtoken");
-const { Nodes, Canvases, Shares } = require("./db");
-const { formatNodes } = require("./utils/formatNodes");
+const { Nodes, BrainNodes, Canvases, Shares } = require("./db");
+const { formatNodes, formatBrainNodes } = require("./utils/formatNodes");
 
-// canvasRooms: Map<canvasId, Set<WebSocket>>
 const canvasRooms = new Map();
 
 function getRoom(canvasId) {
@@ -35,27 +19,23 @@ function broadcast(canvasId, message, excludeWs = null) {
   const room    = getRoom(canvasId);
   const payload = JSON.stringify(message);
   for (const client of room) {
-    if (client !== excludeWs && client.readyState === 1) {
+    if (client !== excludeWs && client.readyState === 1)
       client.send(payload);
-    }
   }
 }
 
 function broadcastMemberCount(canvasId) {
-  const count = getRoom(canvasId).size;
-  broadcast(canvasId, { type: "members", count });
+  broadcast(canvasId, { type: "members", count: getRoom(canvasId).size });
 }
 
-function resolveCanvasAccess(canvasId, token, userId) {
-  // Tenta acesso como dono do canvas
+function resolveCanvasAccess(canvasId, shareToken, userId) {
   if (userId) {
     const canvas = Canvases.findById.get(canvasId, userId);
     if (canvas) return { canvas, mode: "edit" };
   }
-  // Tenta acesso via link de compartilhamento
-  if (token) {
-    const share = Shares.findByToken.get(token);
-    if (share && share.canvas_id === canvasId) {
+  if (shareToken) {
+    const share = Shares.findByToken.get(shareToken);
+    if (share && share.canvas_id === canvasId && !Shares.isExpired(share)) {
       const canvas = Canvases.findByIdAny.get(canvasId);
       if (canvas) return { canvas, mode: share.mode };
     }
@@ -67,12 +47,12 @@ function initWebSocket(server) {
   const wss = new WebSocketServer({ server, path: "/ws" });
 
   wss.on("connection", (ws, req) => {
-    ws.canvasId  = null;
-    ws.userId    = null;
-    ws.mode      = "view";
-    ws.isAlive   = true;
+    ws.canvasId   = null;
+    ws.userId     = null;
+    ws.mode       = "view";
+    ws.isAlive    = true;
+    ws.editUnlocked = false; // senha de edição verificada
 
-    // Extrai JWT e share token da query string: /ws?jwt=...&share=...
     const url        = new URL(req.url, "http://localhost");
     const rawJwt     = url.searchParams.get("jwt");
     const shareToken = url.searchParams.get("share");
@@ -81,9 +61,7 @@ function initWebSocket(server) {
       try {
         const payload = jwt.verify(rawJwt, process.env.JWT_SECRET);
         ws.userId = payload.sub;
-      } catch (_) {
-        // Token inválido ou expirado — continua como anônimo
-      }
+      } catch (_) {}
     }
     ws.shareToken = shareToken || null;
 
@@ -95,7 +73,6 @@ function initWebSocket(server) {
 
       switch (msg.type) {
 
-        // ── Entrar num canvas ─────────────────────────
         case "join": {
           const canvasId = msg.canvasId;
           if (!canvasId) return;
@@ -106,7 +83,6 @@ function initWebSocket(server) {
             return;
           }
 
-          // Sai da sala anterior se necessário
           if (ws.canvasId && ws.canvasId !== canvasId) {
             getRoom(ws.canvasId).delete(ws);
             broadcastMemberCount(ws.canvasId);
@@ -116,12 +92,14 @@ function initWebSocket(server) {
           ws.mode     = access.mode;
           getRoom(canvasId).add(ws);
 
-          // Envia estado atual do canvas ao novo membro
-          const nodes = formatNodes(Nodes.findByCanvas.all(canvasId));
+          const isBrain  = access.canvas.type === "brain";
+          const nodes    = isBrain ? [] : formatNodes(Nodes.findByCanvas.all(canvasId));
+          const brainNodes = isBrain ? formatBrainNodes(BrainNodes.findByCanvas.all(canvasId)) : [];
+
           ws.send(JSON.stringify({
-            type:    "joined",
-            canvasId,
-            nodes,
+            type: "joined", canvasId,
+            nodes, brainNodes,
+            canvasType: access.canvas.type,
             mode:    ws.mode,
             members: getRoom(canvasId).size,
           }));
@@ -130,29 +108,45 @@ function initWebSocket(server) {
           break;
         }
 
-        // ── Salvar e transmitir patch ─────────────────
+        // Patch de task nodes
         case "patch": {
           if (!ws.canvasId) return;
           if (ws.mode !== "edit") {
             ws.send(JSON.stringify({ type: "error", message: "Sem permissão de edição." }));
             return;
           }
-
           const { nodes } = msg;
-          if (!Array.isArray(nodes)) return;
-          if (nodes.length > 500) return; // segurança extra no WS também
+          if (!Array.isArray(nodes) || nodes.length > 500) return;
 
-          // Persiste no banco
           Nodes.replaceAll(ws.canvasId, nodes);
           Canvases.touch.run(ws.canvasId);
 
-          // Transmite para os outros membros da sala
           broadcast(ws.canvasId, {
             type:  "patch",
             nodes: formatNodes(Nodes.findByCanvas.all(ws.canvasId)),
             from:  ws.userId || "anonymous",
           }, ws);
+          break;
+        }
 
+        // Patch de brain nodes
+        case "brain-patch": {
+          if (!ws.canvasId) return;
+          if (ws.mode !== "edit") {
+            ws.send(JSON.stringify({ type: "error", message: "Sem permissão de edição." }));
+            return;
+          }
+          const { nodes: bNodes } = msg;
+          if (!Array.isArray(bNodes) || bNodes.length > 500) return;
+
+          BrainNodes.replaceAll(ws.canvasId, bNodes);
+          Canvases.touch.run(ws.canvasId);
+
+          broadcast(ws.canvasId, {
+            type:       "brain-patch",
+            brainNodes: formatBrainNodes(BrainNodes.findByCanvas.all(ws.canvasId)),
+            from:       ws.userId || "anonymous",
+          }, ws);
           break;
         }
 
@@ -166,17 +160,14 @@ function initWebSocket(server) {
       if (ws.canvasId) {
         getRoom(ws.canvasId).delete(ws);
         broadcastMemberCount(ws.canvasId);
-        // Limpa sala vazia para liberar memória
-        if (getRoom(ws.canvasId).size === 0) {
+        if (getRoom(ws.canvasId).size === 0)
           canvasRooms.delete(ws.canvasId);
-        }
       }
     });
 
-    ws.on("error", () => {}); // Evita crash em erros de socket
+    ws.on("error", () => {});
   });
 
-  // Heartbeat — termina conexões zumbi a cada 30s
   const heartbeat = setInterval(() => {
     wss.clients.forEach((ws) => {
       if (!ws.isAlive) { ws.terminate(); return; }
@@ -186,8 +177,7 @@ function initWebSocket(server) {
   }, 30_000);
 
   wss.on("close", () => clearInterval(heartbeat));
-
-  console.log("  WebSocket pronto em /ws");
+  console.log("  WebSocket v3 pronto em /ws");
   return wss;
 }
 
