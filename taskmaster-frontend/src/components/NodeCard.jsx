@@ -8,9 +8,10 @@ export function NodeCard({
   node,dark,isEditing,editVal,setEditVal,
   onFinishEdit,onStartEdit,onDelete,onComplete,
   onCyclePriority,onAddChild,onDragStart,
-  isNew,readOnly,isSelected,onSelect,isChild,onAddSibling,
+  isNew,readOnly,isSelected,onSelect,isChild,onEnterCreate,
 }) {
   const inputRef=useRef(null);
+  const skipBlur=useRef(false);
   const [pop,setPop]=useState(false);
   useEffect(()=>{if(isEditing)inputRef.current?.focus();},[isEditing]);
 
@@ -49,8 +50,11 @@ export function NodeCard({
       <div style={{padding:isChild?"8px 10px 5px 12px":"11px 12px 7px 16px",minHeight:isChild?32:40}}>
         {isEditing?(
           <input ref={inputRef} value={editVal} onChange={e=>setEditVal(e.target.value)}
-            onBlur={()=>onFinishEdit(editVal)}
-            onKeyDown={e=>{if(e.key==="Enter"){onFinishEdit(editVal);if(!isChild&&editVal.trim())onAddSibling?.();}if(e.key==="Escape")onFinishEdit(node.title||"");}}
+            onBlur={()=>{if(!skipBlur.current)onFinishEdit(editVal);skipBlur.current=false;}}
+            onKeyDown={e=>{
+              if(e.key==="Enter"){skipBlur.current=true;if(!isChild&&editVal.trim())onEnterCreate?.(editVal);else onFinishEdit(editVal);}
+              if(e.key==="Escape"){skipBlur.current=true;onFinishEdit(node.title||"");}
+            }}
             onMouseDown={e=>e.stopPropagation()}
             placeholder="Nome da tarefa…"
             style={{width:"100%",border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:isChild?12:13,color:"var(--text-main)"}}/>
