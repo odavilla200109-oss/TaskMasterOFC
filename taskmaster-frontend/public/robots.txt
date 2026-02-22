@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /terms
+Allow: /privacy
+Disallow: /shared/
+Disallow: /api/
+
+Sitemap: https://usetaskmaster.vercel.app/sitemap.xml
