@@ -490,7 +490,7 @@ export function AppScreen() {
   const hasLock=activeCanvas?.hasViewIndefLock||false;
 
   if(loading)return(
-    <div style={{width:"100%",height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bg-card)",fontFamily:"'DM Sans',sans-serif",color:"#10b981",fontSize:15,gap:10}}>
+    <div style={{width:"100%",height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bg-card)",fontFamily:"'Inter',sans-serif",color:"#10b981",fontSize:15,gap:10}}>
       <span style={{animation:"tmSpin 1s linear infinite",display:"inline-block",fontSize:22}}>⟳</span>Carregando workspace…
     </div>
   );
@@ -505,12 +505,12 @@ export function AppScreen() {
           <div style={{textAlign:"center"}}>
             <div style={{fontSize:32,marginBottom:10}}>⚠️</div>
             <MTitle>Excluir todos os dados?</MTitle>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"var(--text-muted)",marginBottom:18,lineHeight:1.5}}>
+            <p style={{fontFamily:"'Inter',sans-serif",fontSize:13,color:"var(--text-muted)",marginBottom:18,lineHeight:1.5}}>
               Esta ação é irreversível. Sua conta e todos os workspaces serão apagados (LGPD Art. 18).
             </p>
             <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setShowDelConfirm(false)} className="tm-btn" style={{flex:1,background:"none",border:"1px solid var(--border)",borderRadius:11,padding:"10px",fontSize:13,color:"var(--text-muted)",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Cancelar</button>
-              <button onClick={handleDeleteAccount} className="tm-btn" style={{flex:1,background:"linear-gradient(135deg,#ef4444,#b91c1c)",color:"white",border:"none",borderRadius:11,padding:"10px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Excluir tudo</button>
+              <button onClick={()=>setShowDelConfirm(false)} className="tm-btn" style={{flex:1,background:"none",border:"1px solid var(--border)",borderRadius:11,padding:"10px",fontSize:13,color:"var(--text-muted)",cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>Cancelar</button>
+              <button onClick={handleDeleteAccount} className="tm-btn" style={{flex:1,background:"linear-gradient(135deg,#ef4444,#b91c1c)",color:"white",border:"none",borderRadius:11,padding:"10px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>Excluir tudo</button>
             </div>
           </div>
         </Modal>
@@ -519,9 +519,9 @@ export function AppScreen() {
       {hasSidebar&&<Sidebar canvases={canvases} activeId={activeId} membersMap={membersMap} onSelect={switchCanvas} onCreate={createCanvas} onDelete={deleteCanvas} onRename={renameCanvas} collapsed={sideCol} onToggle={()=>setSideCol(p=>!p)}/>}
 
       {/* HEADER */}
-      <header style={{position:"fixed",top:0,left:sideW,right:0,zIndex:1000,display:"flex",alignItems:"center",gap:5,padding:"8px 14px",backdropFilter:"blur(28px) saturate(160%)",background:"var(--bg-glass)",borderBottom:"1.5px solid var(--border)",boxShadow:"0 2px 14px rgba(16,185,129,.06)",fontFamily:"'DM Sans',sans-serif",transition:"left .2s"}}>
-        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:18,color:"var(--text-main)",letterSpacing:-0.8,display:"flex",alignItems:"baseline",gap:2}}>
-          TM<span style={{fontSize:7.5,fontFamily:"'DM Sans',sans-serif",fontWeight:400,color:"#6ee7b7",marginLeft:4,letterSpacing:2.5,textTransform:"uppercase"}}>taskmaster</span>
+      <header style={{position:"fixed",top:0,left:sideW,right:0,zIndex:1000,display:"flex",alignItems:"center",gap:5,padding:"8px 14px",backdropFilter:"blur(28px) saturate(160%)",background:"var(--bg-glass)",borderBottom:"1.5px solid var(--border)",boxShadow:"0 2px 14px rgba(16,185,129,.06)",fontFamily:"'Inter',sans-serif",transition:"left .2s"}}>
+        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,fontSize:18,color:"var(--text-main)",letterSpacing:-0.8,display:"flex",alignItems:"baseline",gap:2}}>
+          TM<span style={{fontSize:7.5,fontFamily:"'Inter',sans-serif",fontWeight:400,color:"#6ee7b7",marginLeft:4,letterSpacing:2.5,textTransform:"uppercase"}}>taskmaster</span>
         </div>
 
         {activeType==="brain"&&<span style={{fontSize:10.5,background:"rgba(139,92,246,.12)",border:"1px solid rgba(139,92,246,.3)",color:"#8b5cf6",borderRadius:20,padding:"3px 10px",fontWeight:700,letterSpacing:.5,display:"flex",alignItems:"center",gap:4}}><Ic.Brain s={11} c="#8b5cf6"/>Brainstorm</span>}
@@ -556,7 +556,7 @@ export function AppScreen() {
 
         <div style={{flex:1}}/>
 
-        {saveErr&&<button onClick={()=>doSave(activeType==="brain"?brainRef.current:nodesRef.current,activeType==="brain")} style={{display:"flex",alignItems:"center",gap:4,fontSize:11,color:"#f87171",background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.22)",borderRadius:8,padding:"4px 9px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>⚠ Salvar</button>}
+        {saveErr&&<button onClick={()=>doSave(activeType==="brain"?brainRef.current:nodesRef.current,activeType==="brain")} style={{display:"flex",alignItems:"center",gap:4,fontSize:11,color:"#f87171",background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.22)",borderRadius:8,padding:"4px 9px",cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>⚠ Salvar</button>}
         {saving&&!saveErr&&<span style={{fontSize:11,color:"#6ee7b7",animation:"tmPulse 1.2s ease infinite"}}>● salvando…</span>}
         {lastSaved&&!saving&&!saveErr&&<span style={{fontSize:10,color:"var(--text-muted)"}}>✓ {lastSaved.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</span>}
 
@@ -672,22 +672,22 @@ export function AppScreen() {
       </div>
 
       {activeType==="task"&&nodes.length===0&&!readOnly&&(
-        <div style={{position:"fixed",bottom:48,left:"50%",transform:"translateX(-50%)",background:"var(--bg-glass)",backdropFilter:"blur(14px)",border:"1.5px dashed var(--border)",borderRadius:14,padding:"11px 26px",pointerEvents:"none",color:"#059669",fontSize:13,fontWeight:500,fontFamily:"'DM Sans',sans-serif"}}>
+        <div style={{position:"fixed",bottom:48,left:"50%",transform:"translateX(-50%)",background:"var(--bg-glass)",backdropFilter:"blur(14px)",border:"1.5px dashed var(--border)",borderRadius:14,padding:"11px 26px",pointerEvents:"none",color:"#059669",fontSize:13,fontWeight:500,fontFamily:"'Inter',sans-serif"}}>
           Duplo clique no canvas para criar uma tarefa ✦
         </div>
       )}
       {activeType==="brain"&&brainNodes.length===0&&!readOnly&&(
-        <div style={{position:"fixed",bottom:48,left:"50%",transform:"translateX(-50%)",background:"rgba(139,92,246,.08)",backdropFilter:"blur(14px)",border:"1.5px dashed rgba(139,92,246,.35)",borderRadius:14,padding:"11px 26px",pointerEvents:"none",color:"#8b5cf6",fontSize:13,fontWeight:500,fontFamily:"'DM Sans',sans-serif",textAlign:"center"}}>
+        <div style={{position:"fixed",bottom:48,left:"50%",transform:"translateX(-50%)",background:"rgba(139,92,246,.08)",backdropFilter:"blur(14px)",border:"1.5px dashed rgba(139,92,246,.35)",borderRadius:14,padding:"11px 26px",pointerEvents:"none",color:"#8b5cf6",fontSize:13,fontWeight:500,fontFamily:"'Inter',sans-serif",textAlign:"center"}}>
           Clique em "Nó" ou duplo clique para criar sua ideia central ✦
         </div>
       )}
 
-      <div style={{position:"fixed",bottom:18,right:18,zIndex:100,background:"var(--bg-glass)",backdropFilter:"blur(12px)",border:"1px solid var(--border)",borderRadius:10,padding:"5px 12px",fontFamily:"'DM Sans',sans-serif",color:"var(--text-sub)",fontSize:12,fontWeight:600}}>
+      <div style={{position:"fixed",bottom:18,right:18,zIndex:100,background:"var(--bg-glass)",backdropFilter:"blur(12px)",border:"1px solid var(--border)",borderRadius:10,padding:"5px 12px",fontFamily:"'Inter',sans-serif",color:"var(--text-sub)",fontSize:12,fontWeight:600}}>
         {Math.round(scale*100)}%
       </div>
 
       {activeType==="task"&&nodes.length>0&&(
-        <div style={{position:"fixed",bottom:18,left:sideW+16,zIndex:100,background:"var(--bg-glass)",backdropFilter:"blur(12px)",border:"1px solid var(--border)",borderRadius:10,padding:"5px 14px",fontFamily:"'DM Sans',sans-serif",color:"var(--text-sub)",fontSize:12,display:"flex",gap:12,transition:"left .2s"}}>
+        <div style={{position:"fixed",bottom:18,left:sideW+16,zIndex:100,background:"var(--bg-glass)",backdropFilter:"blur(12px)",border:"1px solid var(--border)",borderRadius:10,padding:"5px 14px",fontFamily:"'Inter',sans-serif",color:"var(--text-sub)",fontSize:12,display:"flex",gap:12,transition:"left .2s"}}>
           <span>📋 {nodes.length}</span><span>✓ {completed}</span>
           {overdueCt>0&&<span style={{color:"#ef4444"}}>⚠ {overdueCt}</span>}
         </div>

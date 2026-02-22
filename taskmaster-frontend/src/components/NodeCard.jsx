@@ -43,7 +43,7 @@ export function NodeCard({
       }}
     >
       {!isChild&&<div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:pc,transition:"background .25s"}}/>}
-      {isChild&&<div style={{position:"absolute",top:5,right:8,fontSize:8,fontFamily:"'DM Sans',sans-serif",fontWeight:700,letterSpacing:1,color:"var(--text-muted)",textTransform:"uppercase",opacity:.6}}>subtarefa</div>}
+      {isChild&&<div style={{position:"absolute",top:5,right:8,fontSize:8,fontFamily:"'Inter',sans-serif",fontWeight:700,letterSpacing:1,color:"var(--text-muted)",textTransform:"uppercase",opacity:.6}}>subtarefa</div>}
 
       {/* Title */}
       <div style={{padding:isChild?"8px 10px 5px 12px":"11px 12px 7px 16px",minHeight:isChild?32:40}}>
@@ -53,7 +53,7 @@ export function NodeCard({
             onKeyDown={e=>{if(e.key==="Enter")onFinishEdit(editVal);if(e.key==="Escape")onFinishEdit(node.title||"");}}
             onMouseDown={e=>e.stopPropagation()}
             placeholder="Nome da tarefa…"
-            style={{width:"100%",border:"none",outline:"none",background:"transparent",fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:isChild?12:13,color:"var(--text-main)"}}/>
+            style={{width:"100%",border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:isChild?12:13,color:"var(--text-main)"}}/>
         ):(
           <div style={{fontWeight:500,fontSize:isChild?12:13,color:node.completed?"var(--text-muted)":"var(--text-main)",textDecoration:node.completed?"line-through":"none",lineHeight:1.45,wordBreak:"break-word",paddingRight:isChild?28:0}}>
             {node.title||<span style={{color:"var(--text-muted)",fontStyle:"italic",fontWeight:400,fontSize:isChild?11:12}}>Duplo clique para editar</span>}
@@ -63,7 +63,7 @@ export function NodeCard({
 
       {/* Due date badge */}
       {node.dueDate&&(
-        <div style={{margin:`0 ${isChild?10:12}px 5px ${isChild?12:16}px`,display:"inline-flex",alignItems:"center",gap:4,background:over?"rgba(239,68,68,.1)":"rgba(16,185,129,.08)",border:`1px solid ${over?"rgba(239,68,68,.3)":"rgba(16,185,129,.2)"}`,borderRadius:6,padding:"2px 8px",fontSize:10.5,fontFamily:"'DM Sans',sans-serif",color:over?"#ef4444":"var(--text-sub)",fontWeight:600}}>
+        <div style={{margin:`0 ${isChild?10:12}px 5px ${isChild?12:16}px`,display:"inline-flex",alignItems:"center",gap:4,background:over?"rgba(239,68,68,.1)":"rgba(16,185,129,.08)",border:`1px solid ${over?"rgba(239,68,68,.3)":"rgba(16,185,129,.2)"}`,borderRadius:6,padding:"2px 8px",fontSize:10.5,fontFamily:"'Inter',sans-serif",color:over?"#ef4444":"var(--text-sub)",fontWeight:600}}>
           <Ic.Cal s={11} c={over?"#ef4444":"var(--text-sub)"}/> {fmtDue(node.dueDate)}{over&&" ⚠"}
         </div>
       )}

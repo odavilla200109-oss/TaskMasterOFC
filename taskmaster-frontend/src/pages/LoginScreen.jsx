@@ -24,7 +24,7 @@ function Typewriter() {
     return()=>clearTimeout(t.current);
   },[disp,phase,idx]);
   return (
-    <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:"clamp(14px,1.8vw,18px)",fontWeight:400,color:"var(--text-sub)",minHeight:30,display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{fontFamily:"'Inter',sans-serif",fontSize:"clamp(14px,1.8vw,18px)",fontWeight:400,color:"var(--text-sub)",minHeight:30,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <span>{disp}</span>
       <span style={{display:"inline-block",width:2,height:"1.1em",background:"#10b981",borderRadius:2,marginLeft:2,animation:"tmBlink 1s step-end infinite",verticalAlign:"middle"}}/>
     </div>
@@ -91,7 +91,7 @@ export function LoginScreen() {
   ];
 
   if(authLoading)return(
-    <div style={{width:"100%",height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:dark?"#030807":"#f0fdf4",fontFamily:"'DM Sans',sans-serif",color:"#10b981",fontSize:14,gap:10}}>
+    <div style={{width:"100%",height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:dark?"#030807":"#f0fdf4",fontFamily:"'Inter',sans-serif",color:"#10b981",fontSize:14,gap:10}}>
       <span style={{animation:"tmSpin 1s linear infinite",display:"inline-block",fontSize:20}}>⟳</span>Verificando sessão…
     </div>
   );
@@ -101,7 +101,7 @@ export function LoginScreen() {
       <div style={{position:"absolute",inset:0,pointerEvents:"none",zIndex:0,backgroundImage:`radial-gradient(circle,rgba(16,185,129,${dark?.07:.16}) 1px,transparent 1px)`,backgroundSize:"26px 26px"}}/>
       {floats.map((f,i)=><FloatNode key={i} {...f} dark={dark}/>)}
 
-      <button onClick={()=>setDark(d=>!d)} style={{position:"fixed",top:18,right:18,zIndex:200,background:"var(--bg-glass)",backdropFilter:"blur(10px)",border:"1px solid var(--border)",borderRadius:10,padding:"7px 9px",display:"flex",alignItems:"center",cursor:"pointer"}}>
+      <button onClick={()=>setDark(d=>!d)} style={{position:"fixed",top:18,right:18,zIndex:200,background:"var(--bg-glass)",backdropFilter:"blur(10px)",border:"1px solid var(--border)",borderRadius:10,padding:"7px 9px",display:"flex",alignItems:"center",cursor:"pointer",color:"var(--text-main)"}}>
         {dark?<Ic.Sun s={15}/>:<Ic.Moon s={15}/>}
       </button>
 
@@ -110,18 +110,18 @@ export function LoginScreen() {
         {/* Hero */}
         <div style={{textAlign:"center"}}>
           {pending&&(
-            <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(16,185,129,.11)",border:"1px solid rgba(16,185,129,.28)",borderRadius:100,padding:"5px 16px",marginBottom:20,fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,color:"#059669"}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(16,185,129,.11)",border:"1px solid rgba(16,185,129,.28)",borderRadius:100,padding:"5px 16px",marginBottom:20,fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:600,color:"#059669"}}>
               🔗 Faça login para acessar o workspace compartilhado
             </div>
           )}
           {!pending&&(
-            <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(16,185,129,.08)",border:"1px solid rgba(16,185,129,.22)",borderRadius:100,padding:"5px 18px",marginBottom:20,fontFamily:"'DM Sans',sans-serif",fontSize:10.5,fontWeight:700,color:"#059669",letterSpacing:1.4,textTransform:"uppercase"}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(16,185,129,.08)",border:"1px solid rgba(16,185,129,.22)",borderRadius:100,padding:"5px 18px",marginBottom:20,fontFamily:"'Inter',sans-serif",fontSize:10.5,fontWeight:700,color:"#059669",letterSpacing:1.4,textTransform:"uppercase"}}>
               <span style={{width:6,height:6,borderRadius:"50%",background:"#10b981",display:"inline-block",boxShadow:"0 0 6px #10b981",animation:"tmBlink 2s ease infinite"}}/>
               Workspace visual inteligente
             </div>
           )}
 
-          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:"clamp(52px,9vw,100px)",color:"var(--text-main)",letterSpacing:-3,lineHeight:1,marginBottom:18,animation:"tmFadeUp .65s ease both"}}>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:900,fontSize:"clamp(52px,9vw,100px)",color:"var(--text-main)",letterSpacing:-3,lineHeight:1,marginBottom:18,animation:"tmFadeUp .65s ease both"}}>
             TaskMaster
           </div>
           <div style={{animation:"tmFadeUp .65s ease .14s both"}}><Typewriter/></div>
@@ -129,21 +129,21 @@ export function LoginScreen() {
 
         {/* Login card */}
         <div style={{background:"var(--bg-card)",backdropFilter:"blur(28px) saturate(160%)",border:"1.5px solid var(--border)",borderRadius:24,padding:"32px 38px",width:"100%",maxWidth:400,boxShadow:dark?"0 12px 60px rgba(0,0,0,.6),0 0 0 1px rgba(16,185,129,.1)":"0 10px 52px rgba(16,185,129,.12),0 2px 8px rgba(0,0,0,.04)",display:"flex",flexDirection:"column",gap:13,animation:"tmScaleIn .5s cubic-bezier(.34,1.1,.64,1) .18s both"}}>
-          <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:20,color:"var(--text-main)",textAlign:"center"}}>
+          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,fontSize:20,color:"var(--text-main)",textAlign:"center"}}>
             {pending?"Login necessário":"Começar agora"}
           </div>
-          <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"var(--text-muted)",textAlign:"center",lineHeight:1.55}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:13,color:"var(--text-muted)",textAlign:"center",lineHeight:1.55}}>
             {pending?"Entre com Google para acessar o workspace compartilhado.":"Entre com sua conta para salvar workspaces e colaborar em tempo real."}
           </div>
 
-          {error&&<div style={{background:"rgba(239,68,68,.07)",border:"1px solid rgba(239,68,68,.2)",borderRadius:12,padding:"10px 14px",fontSize:13,color:"#f87171",fontFamily:"'DM Sans',sans-serif",textAlign:"center",lineHeight:1.5}}>{error}</div>}
+          {error&&<div style={{background:"rgba(239,68,68,.07)",border:"1px solid rgba(239,68,68,.2)",borderRadius:12,padding:"10px 14px",fontSize:13,color:"#f87171",fontFamily:"'Inter',sans-serif",textAlign:"center",lineHeight:1.5}}>{error}</div>}
 
           {loginLoading?(
-            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:9,padding:"14px",background:"rgba(16,185,129,.07)",borderRadius:14,border:"1px solid var(--border)",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"var(--text-muted)"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:9,padding:"14px",background:"rgba(16,185,129,.07)",borderRadius:14,border:"1px solid var(--border)",fontFamily:"'Inter',sans-serif",fontSize:14,color:"var(--text-muted)"}}>
               <span style={{animation:"tmSpin 1s linear infinite",display:"inline-block",fontSize:18}}>⟳</span>Entrando…
             </div>
           ):(
-            <div style={{display:"flex",justifyContent:"center"}}>
+            <div style={{display:"flex",justifyContent:"center",colorScheme:"light"}}>
               <GoogleLogin onSuccess={handleGoogle} onError={()=>setError("Login Google falhou.")} theme={dark?"filled_black":"filled_green"} size="large" locale="pt-BR" width="320"/>
             </div>
           )}
@@ -152,19 +152,19 @@ export function LoginScreen() {
             <>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{flex:1,height:1,background:"var(--border)"}}/>
-                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"var(--text-muted)",fontWeight:500}}>ou</span>
+                <span style={{fontFamily:"'Inter',sans-serif",fontSize:12,color:"var(--text-muted)",fontWeight:500}}>ou</span>
                 <div style={{flex:1,height:1,background:"var(--border)"}}/>
               </div>
-              <button onClick={handleSkip} className="tm-btn" style={{background:"rgba(16,185,129,.05)",color:"#059669",border:"1.5px dashed rgba(16,185,129,.30)",cursor:"pointer",borderRadius:14,padding:"12px 20px",fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:13.5,width:"100%"}}>
+              <button onClick={handleSkip} className="tm-btn" style={{background:"rgba(16,185,129,.05)",color:"#059669",border:"1.5px dashed rgba(16,185,129,.30)",cursor:"pointer",borderRadius:14,padding:"12px 20px",fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:13.5,width:"100%"}}>
                 Usar sem conta →
               </button>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11.5,color:"var(--text-muted)",textAlign:"center",lineHeight:1.6}}>
+              <p style={{fontFamily:"'Inter',sans-serif",fontSize:11.5,color:"var(--text-muted)",textAlign:"center",lineHeight:1.6}}>
                 Sem login, os dados não são salvos entre sessões.
               </p>
             </>
           )}
 
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10.5,color:"var(--text-muted)",textAlign:"center",lineHeight:1.6,borderTop:"1px solid var(--border)",paddingTop:10,margin:0}}>
+          <p style={{fontFamily:"'Inter',sans-serif",fontSize:10.5,color:"var(--text-muted)",textAlign:"center",lineHeight:1.6,borderTop:"1px solid var(--border)",paddingTop:10,margin:0}}>
             Ao entrar, você concorda com a coleta de dados conforme nossa{" "}
             <a href="/privacy" style={{color:"#10b981",textDecoration:"underline"}}>Política de Privacidade</a>.
           </p>
@@ -172,15 +172,15 @@ export function LoginScreen() {
 
         <div style={{display:"flex",gap:18,alignItems:"center",zIndex:10}}>
           {[["Termos de Uso","/terms"],["Política de Privacidade","/privacy"],["Reportar Erro","/report"]].map(([l,h])=>(
-            <a key={h} href={h} style={{fontFamily:"'DM Sans',sans-serif",fontSize:11.5,color:"var(--text-muted)",textDecoration:"none",transition:"color .2s"}}
+            <a key={h} href={h} style={{fontFamily:"'Inter',sans-serif",fontSize:11.5,color:"var(--text-muted)",textDecoration:"none",transition:"color .2s"}}
               onMouseEnter={e=>e.currentTarget.style.color="#10b981"}
               onMouseLeave={e=>e.currentTarget.style.color="var(--text-muted)"}>{l}</a>
           ))}
         </div>
       </main>
 
-      <footer style={{position:"relative",zIndex:10,borderTop:"1px solid var(--border)",background:"var(--bg-glass)",backdropFilter:"blur(14px)",padding:"14px 36px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10,fontFamily:"'DM Sans',sans-serif"}}>
-        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:15,color:"var(--text-main)",letterSpacing:-0.4}}>TaskMaster</div>
+      <footer style={{position:"relative",zIndex:10,borderTop:"1px solid var(--border)",background:"var(--bg-glass)",backdropFilter:"blur(14px)",padding:"14px 36px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10,fontFamily:"'Inter',sans-serif"}}>
+        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,fontSize:15,color:"var(--text-main)",letterSpacing:-0.4}}>TaskMaster</div>
         <div style={{fontSize:12,color:"var(--text-muted)"}}>Organize. Priorize. Execute.</div>
         <div style={{fontSize:11,color:"var(--text-muted)"}}>© {new Date().getFullYear()} TaskMaster — Todos os direitos reservados</div>
       </footer>
