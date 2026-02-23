@@ -1,5 +1,6 @@
 export function applyTheme(dark) {
   const r = document.documentElement;
+  r.style.colorScheme = dark ? "dark" : "light";
   if (dark) {
     r.style.setProperty("--bg-card",    "rgba(8,18,13,0.97)");
     r.style.setProperty("--bg-glass",   "rgba(5,12,9,0.87)");
