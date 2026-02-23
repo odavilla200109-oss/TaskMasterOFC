@@ -19,13 +19,15 @@ function formatNodes(rows) {
 
 function formatBrainNodes(rows) {
   return rows.map((r) => ({
-    id:       r.id,
-    title:    r.title,
-    x:        r.x,
-    y:        r.y,
-    color:    r.color   || "#10b981",
-    parentId: r.parent_id || null,
-    isRoot:   r.is_root === 1,
+    id:        r.id,
+    title:     r.title,
+    x:         r.x,
+    y:         r.y,
+    color:     r.color     || "#10b981",
+    parentId:  r.parent_id || null,
+    isRoot:    r.is_root   === 1,
+    side:      r.side      || null,
+    collapsed: r.collapsed === 1,
   }));
 }
 

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Ic, PriIcon } from "../icons";
 import { DueDatePicker } from "./DueDatePicker";
 import { PRIORITY, NODE_W, NODE_W_CHILD, NODE_H_CHILD } from "../config/constants";
-import { isOverdue, fmtDue, nW, nH } from "../utils/nodeUtils";
+import { isOverdue, nW, nH } from "../utils/nodeUtils";
 
 export function NodeCard({
   node,dark,isEditing,editVal,setEditVal,
@@ -61,12 +61,6 @@ export function NodeCard({
         )}
       </div>
 
-      {/* Due date badge */}
-      {node.dueDate&&(
-        <div style={{margin:`0 ${isChild?10:12}px 5px ${isChild?12:16}px`,display:"inline-flex",alignItems:"center",gap:4,background:over?"rgba(239,68,68,.1)":"rgba(16,185,129,.08)",border:`1px solid ${over?"rgba(239,68,68,.3)":"rgba(16,185,129,.2)"}`,borderRadius:6,padding:"2px 8px",fontSize:10.5,fontFamily:"'Inter',sans-serif",color:over?"#ef4444":"var(--text-sub)",fontWeight:600}}>
-          <Ic.Cal s={11} c={over?"#ef4444":"var(--text-sub)"}/> {fmtDue(node.dueDate)}{over&&" ⚠"}
-        </div>
-      )}
 
       {/* Footer */}
       <div style={{display:"flex",alignItems:"center",gap:2,padding:isChild?"4px 7px 6px 11px":"5px 8px 7px 13px",borderTop:"1px solid var(--border)"}}>

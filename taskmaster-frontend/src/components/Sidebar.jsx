@@ -1,15 +1,38 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Ic } from "../icons";
 import { MAX_WS } from "../config/constants";
 
 export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,membersMap,collapsed,onToggle}) {
   const [renaming,setRenaming]=useState(null);
   const [renameVal,setRenameVal]=useState("");
+  const clickTimer=useRef(null);
 
   const W=collapsed?40:224;
 
+  // Delay single-click to avoid triggering onSelect on first click of a double-click
+  const handleItemClick=(id)=>{
+    if(clickTimer.current){
+      clearTimeout(clickTimer.current);
+      clickTimer.current=null;
+      return;
+    }
+    clickTimer.current=setTimeout(()=>{
+      clickTimer.current=null;
+      onSelect(id);
+    },220);
+  };
+
+  const handleItemDblClick=(id,name)=>{
+    if(clickTimer.current){
+      clearTimeout(clickTimer.current);
+      clickTimer.current=null;
+    }
+    setRenaming(id);
+    setRenameVal(name);
+  };
+
   return (
-    <div style={{position:"fixed",left:0,top:56,bottom:0,width:W,zIndex:500,background:"var(--bg-glass)",backdropFilter:"blur(20px) saturate(160%)",borderRight:"1.5px solid var(--border)",display:"flex",flexDirection:"column",padding:"10px 6px",gap:3,overflowY:"auto",transition:"width .2s",overflow:"hidden"}}>
+    <div style={{position:"fixed",left:0,top:56,bottom:0,width:W,zIndex:500,background:"var(--bg-glass)",backdropFilter:"blur(20px) saturate(160%)",borderRight:"1.5px solid var(--border)",display:"flex",flexDirection:"column",padding:"10px 6px",gap:3,transition:"width .2s",overflowX:"hidden",overflowY:"auto"}}>
       {collapsed?(
         <>
           <button onClick={onToggle} className="tm-btn" title="Expandir" style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:"6px",borderRadius:8,display:"flex",justifyContent:"center",marginBottom:4}}>
@@ -47,9 +70,12 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
                   <input autoFocus value={renameVal} onChange={e=>setRenameVal(e.target.value)}
                     onBlur={()=>{onRename(c.id,renameVal);setRenaming(null);}}
                     onKeyDown={e=>{if(e.key==="Enter"){onRename(c.id,renameVal);setRenaming(null);}if(e.key==="Escape")setRenaming(null);}}
+                    onMouseDown={e=>e.stopPropagation()}
                     style={{flex:1,border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontSize:12.5,color:"var(--text-main)",padding:"6px 3px"}}/>
                 ):(
-                  <button onClick={()=>onSelect(c.id)} onDoubleClick={()=>{setRenaming(c.id);setRenameVal(c.name);}}
+                  <button
+                    onClick={()=>handleItemClick(c.id)}
+                    onDoubleClick={()=>handleItemDblClick(c.id,c.name)}
                     style={{flex:1,background:"none",border:"none",cursor:"pointer",textAlign:"left",fontFamily:"'Inter',sans-serif",fontSize:12.5,fontWeight:active?600:400,color:active?"#10b981":"var(--text-main)",padding:"6px 4px",borderRadius:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                     {c.name}
                   </button>
