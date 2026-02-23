@@ -111,6 +111,8 @@ migrate("ALTER TABLE canvases ADD COLUMN type      TEXT NOT NULL DEFAULT 'task'"
 migrate("ALTER TABLE canvas_shares ADD COLUMN expires_at           TEXT");
 migrate("ALTER TABLE canvas_shares ADD COLUMN password_hash        TEXT");
 migrate("ALTER TABLE canvas_shares ADD COLUMN view_indefinite_lock INTEGER NOT NULL DEFAULT 0");
+migrate("ALTER TABLE brain_nodes   ADD COLUMN side      TEXT");
+migrate("ALTER TABLE brain_nodes   ADD COLUMN collapsed INTEGER NOT NULL DEFAULT 0");
 
 // ── Users ──────────────────────────────────────────────
 const Users = {
@@ -186,11 +188,12 @@ const BrainNodes = {
   findByCanvas:   db.prepare("SELECT * FROM brain_nodes WHERE canvas_id=? ORDER BY is_root DESC, created_at ASC"),
   deleteByCanvas: db.prepare("DELETE FROM brain_nodes WHERE canvas_id=?"),
   upsert: db.prepare(`
-    INSERT INTO brain_nodes (id,canvas_id,title,x,y,color,parent_id,is_root)
-    VALUES (@id,@canvas_id,@title,@x,@y,@color,@parent_id,@is_root)
+    INSERT INTO brain_nodes (id,canvas_id,title,x,y,color,parent_id,is_root,side,collapsed)
+    VALUES (@id,@canvas_id,@title,@x,@y,@color,@parent_id,@is_root,@side,@collapsed)
     ON CONFLICT(id) DO UPDATE SET
       title=excluded.title, x=excluded.x, y=excluded.y,
       color=excluded.color, parent_id=excluded.parent_id,
+      side=excluded.side, collapsed=excluded.collapsed,
       updated_at=datetime('now')
   `),
   replaceAll: db.transaction((canvasId, nodes) => {
@@ -205,6 +208,8 @@ const BrainNodes = {
         color:     n.color   || "#10b981",
         parent_id: n.parentId || null,
         is_root:   n.isRoot  ? 1 : 0,
+        side:      n.side    || null,
+        collapsed: n.collapsed ? 1 : 0,
       });
     }
   }),

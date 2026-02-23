@@ -26,8 +26,30 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
 
   const W=collapsed?40:224;
 
+  // Delay single-click to avoid triggering onSelect on first click of a double-click
+  const handleItemClick=(id)=>{
+    if(clickTimer.current){
+      clearTimeout(clickTimer.current);
+      clickTimer.current=null;
+      return;
+    }
+    clickTimer.current=setTimeout(()=>{
+      clickTimer.current=null;
+      onSelect(id);
+    },220);
+  };
+
+  const handleItemDblClick=(id,name)=>{
+    if(clickTimer.current){
+      clearTimeout(clickTimer.current);
+      clickTimer.current=null;
+    }
+    setRenaming(id);
+    setRenameVal(name);
+  };
+
   return (
-    <div style={{position:"fixed",left:0,top:56,bottom:0,width:W,zIndex:500,background:"var(--bg-glass)",backdropFilter:"blur(20px) saturate(160%)",borderRight:"1.5px solid var(--border)",display:"flex",flexDirection:"column",padding:"10px 6px",gap:3,overflowY:"auto",transition:"width .2s",overflow:"hidden"}}>
+    <div style={{position:"fixed",left:0,top:56,bottom:0,width:W,zIndex:500,background:"var(--bg-glass)",backdropFilter:"blur(20px) saturate(160%)",borderRight:"1.5px solid var(--border)",display:"flex",flexDirection:"column",padding:"10px 6px",gap:3,transition:"width .2s",overflowX:"hidden",overflowY:"auto"}}>
       {collapsed?(
         <>
           <button onClick={onToggle} className="tm-btn" title="Expandir" style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:"6px",borderRadius:8,display:"flex",justifyContent:"center",marginBottom:4}}>

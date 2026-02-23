@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useContext } from "react";
+import { useState, useRef, useCallback, useEffect, useContext, useMemo } from "react";
 import { AppCtx } from "../context/AppContext";
 import { Ic } from "../icons";
 import { NodeCard } from "../components/NodeCard";
@@ -19,11 +19,14 @@ import {
   PRIORITY, BRAIN_COLORS,
 } from "../config/constants";
 import {
-  getDescendants, nW, nH, freePos, isOverdue, brainOrbit,
+  getDescendants, nW, nH, freePos, isOverdue, brainPosition,
 } from "../utils/nodeUtils";
 import {
   soundNodeCreate, soundNodeComplete, soundSubtaskCreate, soundDelete,
 } from "../sounds";
+
+// Max direct children per side on root node
+const BRAIN_MAX_PER_SIDE = 4;
 
 export function AppScreen() {
   const {user,setScreen,dark,setDark}=useContext(AppCtx);
@@ -137,18 +140,21 @@ export function AppScreen() {
     }finally{setSaving(false);}
   },[activeId,readOnly]);
 
+  // Debounced auto-save — 1500ms, skips during active drag
   useEffect(()=>{
     const isBrain=activeType==="brain";
     const cur=isBrain?brainNodes:nodes;
     if((!activeId&&!sharedId)||loading||wsPatching.current||readOnly)return;
     clearTimeout(saveTimer.current);
     saveTimer.current=setTimeout(async()=>{
+      if(dragging.current)return; // never save mid-drag
       if(activeId)await doSave(cur,isBrain);
       isBrain?sendBrainPatch(cur):sendPatch(cur);
     },4000);
     return()=>clearTimeout(saveTimer.current);
   },[nodes,brainNodes,activeId,sharedId,loading,readOnly,activeType,sendPatch,sendBrainPatch,doSave]);
 
+  // Save immediately when tab becomes hidden
   useEffect(()=>{
     const h=()=>{
       if(document.visibilityState==="hidden"&&activeId&&!readOnly){
@@ -161,6 +167,7 @@ export function AppScreen() {
     return()=>document.removeEventListener("visibilitychange",h);
   },[activeId,readOnly,doSave]);
 
+  // Periodic safety-net save every 60s
   useEffect(()=>{
     if(!activeId||readOnly)return;
     periodicRef.current=setInterval(()=>{
@@ -328,23 +335,50 @@ export function AppScreen() {
   },[saveHistory]);
 
   // ── Brain actions ──
-  const addBrainNode=useCallback((parentId=null,cx=null,cy=null)=>{
+  const addBrainNode=useCallback((parentId=null,cx=null,cy=null,forceSide=null)=>{
     const id=uid();const w=wrapRef.current?.clientWidth??900,h=wrapRef.current?.clientHeight??600;
     const isRoot=brainRef.current.length===0&&parentId===null;
-    let x,y;
+    let x,y,side=null;
+
     if(isRoot){
       x=cx??(-panRef.current.x+w/2)/scaleRef.current-BRAIN_ROOT_W/2;
       y=cy??(-panRef.current.y+h/2)/scaleRef.current-BRAIN_ROOT_H/2;
     }else{
       const root=brainRef.current.find(n=>n.isRoot);
-      const effectiveParent=parentId?brainRef.current.find(n=>n.id===parentId):root;
-      const sibs=brainRef.current.filter(n=>n.parentId===(effectiveParent?.id||null));
-      const pos=brainOrbit(effectiveParent||{x:400,y:300},sibs.length+1,sibs.length);
+      let effectiveParentId=parentId;
+
+      if(!parentId){
+        // Adding to root — determine side automatically
+        effectiveParentId=root?.id||null;
+        if(!effectiveParentId)return;
+        const rightCount=brainRef.current.filter(n=>n.parentId===effectiveParentId&&n.side==="right").length;
+        const leftCount=brainRef.current.filter(n=>n.parentId===effectiveParentId&&n.side==="left").length;
+        if(forceSide){
+          side=forceSide;
+          if(side==="right"&&rightCount>=BRAIN_MAX_PER_SIDE)return;
+          if(side==="left"&&leftCount>=BRAIN_MAX_PER_SIDE)return;
+        }else if(rightCount<=leftCount&&rightCount<BRAIN_MAX_PER_SIDE){
+          side="right";
+        }else if(leftCount<BRAIN_MAX_PER_SIDE){
+          side="left";
+        }else if(rightCount<BRAIN_MAX_PER_SIDE){
+          side="right";
+        }else{
+          return; // both sides full
+        }
+      }else{
+        // Adding to non-root node — inherit parent's side
+        const parent=brainRef.current.find(n=>n.id===parentId);
+        side=parent?.side||"right";
+      }
+
+      const pos=brainPosition(brainRef.current,effectiveParentId,side);
       x=pos.x;y=pos.y;
+      parentId=effectiveParentId;
     }
-    const color=BRAIN_COLORS[brainRef.current.length%BRAIN_COLORS.length];
-    const root=brainRef.current.find(n=>n.isRoot);
-    const node={id,title:"",x,y,color,parentId:isRoot?null:(parentId||root?.id||null),isRoot};
+
+    const color=BRAIN_COLORS[brainRef.current.filter(n=>!n.isRoot).length%BRAIN_COLORS.length];
+    const node={id,title:"",x,y,color,parentId:isRoot?null:parentId,isRoot,side,collapsed:false};
     saveHistory([...brainRef.current,node],true);
     setEditingId(id);setEditVal("");setNewId(id);setTimeout(()=>setNewId(null),500);setSelectedId(id);
     soundNodeCreate();
@@ -364,6 +398,22 @@ export function AppScreen() {
   const changeBrainColor=useCallback((id,color)=>{
     saveHistory(brainRef.current.map(n=>n.id===id?{...n,color}:n),true);
   },[saveHistory]);
+
+  const toggleBrainCollapse=useCallback(id=>{
+    saveHistory(brainRef.current.map(n=>n.id===id?{...n,collapsed:!n.collapsed}:n),true);
+  },[saveHistory]);
+
+  // ── Visible brain nodes (exclude descendants of collapsed nodes) ──
+  const visibleBrainNodes=useMemo(()=>{
+    if(activeType!=="brain")return brainNodes;
+    const hiddenIds=new Set();
+    brainNodes.filter(n=>n.collapsed).forEach(collapsed=>{
+      const desc=getDescendants(brainNodes,collapsed.id);
+      desc.delete(collapsed.id); // keep the collapsed node itself
+      desc.forEach(id=>hiddenIds.add(id));
+    });
+    return brainNodes.filter(n=>!hiddenIds.has(n.id));
+  },[brainNodes,activeType]);
 
   // ── Fit / Organize ──
   const fitToScreen=useCallback((override=null)=>{
@@ -443,7 +493,19 @@ export function AppScreen() {
     }
   },[onBgMove]);
 
-  const onMouseUp=useCallback(()=>{dragging.current=null;canPan.current=false;isPanning.current=false;},[]);
+  const onMouseUp=useCallback(()=>{
+    if(dragging.current){
+      // Trigger save shortly after drag ends
+      const isBrain=typeRef.current==="brain";
+      if(activeId&&!readOnly){
+        clearTimeout(saveTimer.current);
+        saveTimer.current=setTimeout(()=>{
+          doSave(isBrain?brainRef.current:nodesRef.current,isBrain);
+        },400);
+      }
+    }
+    dragging.current=null;canPan.current=false;isPanning.current=false;
+  },[activeId,readOnly,doSave]);
 
   const onDblClick=useCallback(e=>{
     if(readOnly)return;
@@ -490,9 +552,16 @@ export function AppScreen() {
   const taskConns=activeType==="task"
     ?nodes.filter(n=>n.parentId&&nodes.find(p=>p.id===n.parentId)).map(n=>({child:n,parent:nodes.find(p=>p.id===n.parentId)}))
     :[];
-  const brainConns=activeType==="brain"
-    ?brainNodes.filter(n=>n.parentId&&brainNodes.find(p=>p.id===n.parentId)).map(n=>({child:n,parent:brainNodes.find(p=>p.id===n.parentId)}))
-    :[];
+
+  // Brain connections only between visible nodes, using edge-to-edge paths (no node overlap)
+  const brainConns=useMemo(()=>{
+    if(activeType!=="brain")return[];
+    const visibleIds=new Set(visibleBrainNodes.map(n=>n.id));
+    return visibleBrainNodes
+      .filter(n=>n.parentId&&visibleIds.has(n.parentId))
+      .map(n=>({child:n,parent:visibleBrainNodes.find(p=>p.id===n.parentId)}))
+      .filter(c=>c.parent);
+  },[visibleBrainNodes,activeType]);
 
   const completed=nodes.filter(n=>n.completed).length;
   const overdueCt=nodes.filter(n=>isOverdue(n.dueDate)&&!n.completed).length;
@@ -636,34 +705,74 @@ export function AppScreen() {
         {/* Transform layer */}
         <div data-canvas="true" style={{position:"absolute",top:0,left:0,transform:`translate(${pan.x}px,${pan.y}px) scale(${scale})`,transformOrigin:"0 0",width:10000,height:10000}}>
 
-          {/* SVG connections */}
-          <svg style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",overflow:"visible"}}>
+          {/* SVG connections — rendered BEHIND nodes */}
+          <svg style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",overflow:"visible",zIndex:1}}>
             <defs>
               <marker id="tmArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
                 <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(16,185,129,.42)"/>
               </marker>
             </defs>
 
+            {/* Task connections */}
             {taskConns.map(({parent,child})=>{
               const x1=parent.x+nW(parent)/2,y1=parent.y+nH(parent);
               const x2=child.x+nW(child)/2,y2=child.y,ym=(y1+y2)/2;
               return <path key={`${parent.id}-${child.id}`} d={`M${x1} ${y1}C${x1} ${ym},${x2} ${ym},${x2} ${y2}`} fill="none" stroke={dark?"rgba(16,185,129,.28)":"rgba(16,185,129,.40)"} strokeWidth={1.5} strokeDasharray="8 5" markerEnd="url(#tmArrow)"/>;
             })}
 
+            {/* Brain connections — edge-to-edge, never crossing through nodes */}
             {brainConns.map(({parent,child})=>{
-              const pw=parent.isRoot?BRAIN_ROOT_W:BRAIN_CHILD_W,ph=parent.isRoot?BRAIN_ROOT_H:BRAIN_CHILD_H;
-              const cw=child.isRoot?BRAIN_ROOT_W:BRAIN_CHILD_W,ch2=child.isRoot?BRAIN_ROOT_H:BRAIN_CHILD_H;
-              const x1=parent.x+pw/2,y1=parent.y+ph/2;
-              const x2=child.x+cw/2,y2=child.y+ch2/2;
-              const mx=(x1+x2)/2,my=(y1+y2)/2;
-              const offset=Math.min(Math.abs(x2-x1),Math.abs(y2-y1))*0.3;
+              const pw=parent.isRoot?BRAIN_ROOT_W:BRAIN_CHILD_W;
+              const ph=parent.isRoot?BRAIN_ROOT_H:BRAIN_CHILD_H;
+              const cw=BRAIN_CHILD_W;
+              const ch=BRAIN_CHILD_H;
               const color=child.color||"#10b981";
-              return <path key={`b-${parent.id}-${child.id}`} d={`M${x1} ${y1}Q${mx+offset} ${my-offset},${x2} ${y2}`} fill="none" stroke={color} strokeWidth={1.6} strokeOpacity={.5} strokeLinecap="round"/>;
+              const isRight=child.side==="right";
+
+              let x1,y1,x2,y2,cx1,cy1,cx2,cy2;
+
+              if(parent.isRoot){
+                // Root to child: connect from root's right/left edge to child's opposite edge
+                if(isRight){
+                  x1=parent.x+pw; y1=parent.y+ph/2;
+                  x2=child.x;     y2=child.y+ch/2;
+                }else{
+                  x1=parent.x;    y1=parent.y+ph/2;
+                  x2=child.x+cw;  y2=child.y+ch/2;
+                }
+              }else{
+                // Child to grandchild: same direction
+                if(isRight){
+                  x1=parent.x+pw; y1=parent.y+ph/2;
+                  x2=child.x;     y2=child.y+ch/2;
+                }else{
+                  x1=parent.x;    y1=parent.y+ph/2;
+                  x2=child.x+cw;  y2=child.y+ch/2;
+                }
+              }
+
+              // Bezier control points for smooth curve
+              const mid=(x1+x2)/2;
+              cx1=mid; cy1=y1;
+              cx2=mid; cy2=y2;
+
+              return (
+                <path
+                  key={`b-${parent.id}-${child.id}`}
+                  d={`M${x1} ${y1} C${cx1} ${cy1},${cx2} ${cy2},${x2} ${y2}`}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={2}
+                  strokeOpacity={0.55}
+                  strokeLinecap="round"
+                />
+              );
             })}
           </svg>
 
           {bursts.map(b=><BurstEffect key={b.id} x={b.x} y={b.y}/>)}
 
+          {/* Task nodes */}
           {activeType==="task"&&nodes.map(node=>(
             <NodeCard key={node.id} node={node} dark={dark}
               isEditing={editingId===node.id} editVal={editVal} setEditVal={setEditVal}
@@ -678,16 +787,23 @@ export function AppScreen() {
               onDragStart={e=>startDrag(e,node.id)}/>
           ))}
 
-          {activeType==="brain"&&brainNodes.map(node=>(
-            <BrainNodeCard key={node.id} node={node} dark={dark}
-              isEditing={editingId===node.id} editVal={editVal} setEditVal={setEditVal}
-              isNew={node.id===newId} readOnly={readOnly} isSelected={selectedId===node.id}
-              onSelect={()=>setSelectedId(node.id)}
-              onFinishEdit={title=>finishBrainEdit(node.id,title)}
-              onDelete={()=>deleteBrainNode(node.id)}
-              onColorChange={color=>changeBrainColor(node.id,color)}
-              onDragStart={e=>startDrag(e,node.id)}/>
-          ))}
+          {/* Brain nodes — only visible ones */}
+          {activeType==="brain"&&visibleBrainNodes.map(node=>{
+            const childCount=brainNodes.filter(n=>n.parentId===node.id).length;
+            return (
+              <BrainNodeCard key={node.id} node={node} dark={dark}
+                isEditing={editingId===node.id} editVal={editVal} setEditVal={setEditVal}
+                isNew={node.id===newId} readOnly={readOnly} isSelected={selectedId===node.id}
+                childCount={childCount}
+                onSelect={()=>setSelectedId(node.id)}
+                onFinishEdit={title=>finishBrainEdit(node.id,title)}
+                onDelete={()=>deleteBrainNode(node.id)}
+                onColorChange={color=>changeBrainColor(node.id,color)}
+                onAddChild={side=>addBrainNode(node.isRoot?null:node.id,null,null,node.isRoot?side:null)}
+                onToggleCollapse={()=>toggleBrainCollapse(node.id)}
+                onDragStart={e=>startDrag(e,node.id)}/>
+            );
+          })}
         </div>
       </div>
 
