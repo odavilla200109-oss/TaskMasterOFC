@@ -150,7 +150,7 @@ export function AppScreen() {
       if(dragging.current)return; // never save mid-drag
       if(activeId)await doSave(cur,isBrain);
       isBrain?sendBrainPatch(cur):sendPatch(cur);
-    },4000);
+    },1500);
     return()=>clearTimeout(saveTimer.current);
   },[nodes,brainNodes,activeId,sharedId,loading,readOnly,activeType,sendPatch,sendBrainPatch,doSave]);
 
@@ -172,8 +172,8 @@ export function AppScreen() {
     if(!activeId||readOnly)return;
     periodicRef.current=setInterval(()=>{
       const isBrain=typeRef.current==="brain";
-      if(!wsPatching.current)doSave(isBrain?brainRef.current:nodesRef.current,isBrain);
-    },120_000);
+      if(!wsPatching.current&&!dragging.current)doSave(isBrain?brainRef.current:nodesRef.current,isBrain);
+    },60_000);
     return()=>clearInterval(periodicRef.current);
   },[activeId,readOnly,doSave]);
 
@@ -202,6 +202,7 @@ export function AppScreen() {
   // ── Switch canvas ──
   const switchCanvas=useCallback(async id=>{
     setActiveId(id);setLoading(true);setSelectedId(null);setPast([]);setFuture([]);
+    setMembersMap(m=>({...m,[id]:0}));
     const c=canvases.find(x=>x.id===id);const type=c?.type||"task";setActiveType(type);
     if(type==="brain"){const bn=await api(`/api/canvases/${id}/brain-nodes`);setBrainNodes(bn);setNodes([]);}
     else{const n=await api(`/api/canvases/${id}/nodes`);setNodes(n);setBrainNodes([]);}
@@ -209,15 +210,21 @@ export function AppScreen() {
   },[canvases]);
 
   const createCanvas=async(type,name)=>{
-    if(!name?.trim())return;
-    try{const c=await api("/api/canvases",{method:"POST",body:{name:name.trim(),type}});setCanvases(p=>[...p,c]);switchCanvas(c.id);}
-    catch(_){}
+    if(!name||!name.trim())return;
+    try{
+      const c=await api("/api/canvases",{method:"POST",body:{name:name.trim(),type}});
+      setCanvases(p=>[...p,c]);
+      setActiveId(c.id);setActiveType(type);
+      setNodes([]);setBrainNodes([]);setPast([]);setFuture([]);setSelectedId(null);
+    }catch(_){}
   };
   const deleteCanvas=async id=>{
-    if(!confirm("Excluir workspace?"))return;
-    await api(`/api/canvases/${id}`,{method:"DELETE"});
+    try{await api(`/api/canvases/${id}`,{method:"DELETE"});}catch(_){}
     const next=canvases.filter(c=>c.id!==id);setCanvases(next);
-    if(activeId===id&&next.length>0)switchCanvas(next[0].id);
+    if(activeId===id){
+      if(next.length>0)switchCanvas(next[0].id);
+      else{setActiveId(null);setNodes([]);setBrainNodes([]);}
+    }
   };
   const renameCanvas=async(id,name)=>{
     if(!name.trim())return;
@@ -317,21 +324,6 @@ export function AppScreen() {
     const node=nodesRef.current.find(n=>n.id===id);if(!node||node.parentId)return;
     const next=PRIORITY.order[(PRIORITY.order.indexOf(node.priority)+1)%PRIORITY.order.length];
     saveHistory(nodesRef.current.map(n=>n.id===id?{...n,priority:next}:n));
-  },[saveHistory]);
-
-  // Atomically saves current title and creates next sibling — avoids stale-ref race condition
-  const enterCreateNode=useCallback((id,title)=>{
-    const updated=title.trim()
-      ?nodesRef.current.map(n=>n.id===id?{...n,title}:n)
-      :nodesRef.current.filter(n=>n.id!==id);
-    const nid=uid();
-    const w=wrapRef.current?.clientWidth??900,h=wrapRef.current?.clientHeight??600;
-    const bx=(-panRef.current.x+w/2)/scaleRef.current-NODE_W/2;
-    const by=(-panRef.current.y+h/2)/scaleRef.current-NODE_H/2;
-    const{x,y}=freePos(updated,bx,by,false);
-    saveHistory([...updated,{id:nid,title:"",x,y,priority:"none",completed:false,parentId:null,dueDate:null}]);
-    setEditingId(nid);setEditVal("");setNewId(nid);setTimeout(()=>setNewId(null),500);setSelectedId(nid);
-    soundNodeCreate();
   },[saveHistory]);
 
   // ── Brain actions ──
@@ -513,7 +505,7 @@ export function AppScreen() {
     const rect=wrapRef.current.getBoundingClientRect();
     const x=(e.clientX-rect.left-panRef.current.x)/scaleRef.current;
     const y=(e.clientY-rect.top-panRef.current.y)/scaleRef.current;
-    if(typeRef.current==="brain")addBrainNode(null,x,y);
+    if(typeRef.current==="brain")addBrainNode(null,x-BRAIN_ROOT_W/2,y-BRAIN_ROOT_H/2);
     else addNode(null,x-NODE_W/2,y-NODE_H/2);
   },[addNode,addBrainNode,readOnly]);
 
@@ -563,7 +555,10 @@ export function AppScreen() {
       .filter(c=>c.parent);
   },[visibleBrainNodes,activeType]);
 
+  const rootNodes=nodes.filter(n=>!n.parentId);
   const completed=nodes.filter(n=>n.completed).length;
+  const rootCompleted=rootNodes.filter(n=>n.completed).length;
+  const subtaskCount=nodes.filter(n=>!!n.parentId).length;
   const overdueCt=nodes.filter(n=>isOverdue(n.dueDate)&&!n.completed).length;
   const isShared=!!shareToken;
   const hasSidebar=!isShared&&canvases.length>0&&!!user;
@@ -602,14 +597,14 @@ export function AppScreen() {
       {hasSidebar&&<Sidebar canvases={canvases} activeId={activeId} membersMap={membersMap} onSelect={switchCanvas} onCreate={createCanvas} onDelete={deleteCanvas} onRename={renameCanvas} collapsed={sideCol} onToggle={()=>setSideCol(p=>!p)}/>}
 
       {/* HEADER */}
-      <header style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,display:"flex",alignItems:"center",gap:5,padding:"8px 14px",backdropFilter:"blur(28px) saturate(160%)",background:"var(--bg-glass)",borderBottom:"1.5px solid var(--border)",boxShadow:"0 2px 14px rgba(16,185,129,.06)",fontFamily:"'Inter',sans-serif"}}>
+      <header style={{position:"fixed",top:0,left:sideW,right:0,zIndex:1000,display:"flex",alignItems:"center",gap:5,padding:"8px 14px",backdropFilter:"blur(28px) saturate(160%)",background:"var(--bg-glass)",borderBottom:"1.5px solid var(--border)",boxShadow:"0 2px 14px rgba(16,185,129,.06)",fontFamily:"'Inter',sans-serif",transition:"left .2s"}}>
         <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,fontSize:18,color:"var(--text-main)",letterSpacing:-0.8,display:"flex",alignItems:"baseline",gap:2}}>
           TM<span style={{fontSize:7.5,fontFamily:"'Inter',sans-serif",fontWeight:400,color:"#6ee7b7",marginLeft:4,letterSpacing:2.5,textTransform:"uppercase"}}>taskmaster</span>
         </div>
 
         {activeType==="brain"&&<span style={{fontSize:10.5,background:"rgba(139,92,246,.12)",border:"1px solid rgba(139,92,246,.3)",color:"#8b5cf6",borderRadius:20,padding:"3px 10px",fontWeight:700,letterSpacing:.5,display:"flex",alignItems:"center",gap:4}}><Ic.Brain s={11} c="#8b5cf6"/>Brainstorm</span>}
         {isShared&&<span style={{fontSize:10.5,background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.3)",color:"#10b981",borderRadius:20,padding:"3px 10px",fontWeight:700,letterSpacing:.5}}>{readOnly?"SOMENTE LEITURA":"✦ EDIÇÃO COLABORATIVA"}</span>}
-        {activeMembers>1&&!isShared&&<span style={{fontSize:10.5,background:"rgba(16,185,129,.08)",border:"1px solid rgba(16,185,129,.22)",color:"#10b981",borderRadius:20,padding:"3px 10px",fontWeight:600,display:"flex",alignItems:"center",gap:4}}><span style={{width:5,height:5,borderRadius:"50%",background:"#10b981",animation:"tmPulse 2s ease infinite",display:"inline-block"}}/>{activeMembers} online</span>}
+        {activeMembers>0&&!isShared&&<span style={{fontSize:10.5,background:"rgba(16,185,129,.08)",border:"1px solid rgba(16,185,129,.22)",color:"#10b981",borderRadius:20,padding:"3px 10px",fontWeight:600,display:"flex",alignItems:"center",gap:4}}><span style={{width:5,height:5,borderRadius:"50%",background:"#10b981",animation:"tmPulse 2s ease infinite",display:"inline-block"}}/>{activeMembers} online</span>}
 
         {isShared&&readOnly&&(
           <button onClick={()=>setShowPwd(true)} className="tm-btn" style={{background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.28)",color:"#f59e0b",borderRadius:9,padding:"5px 10px",display:"flex",alignItems:"center",gap:4,cursor:"pointer",fontSize:12,fontWeight:600}}>
@@ -642,11 +637,6 @@ export function AppScreen() {
         {saveErr&&<button onClick={()=>doSave(activeType==="brain"?brainRef.current:nodesRef.current,activeType==="brain")} style={{display:"flex",alignItems:"center",gap:4,fontSize:11,color:"#f87171",background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.22)",borderRadius:8,padding:"4px 9px",cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>⚠ Salvar</button>}
         {saving&&!saveErr&&<span style={{fontSize:11,color:"#6ee7b7",animation:"tmPulse 1.2s ease infinite"}}>● salvando…</span>}
         {lastSaved&&!saving&&!saveErr&&<span style={{fontSize:10,color:"var(--text-muted)"}}>✓ {lastSaved.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</span>}
-        {!readOnly&&activeId&&(
-          <button className="tm-btn" disabled={saving} onClick={()=>{const ib=activeType==="brain";doSave(ib?brainRef.current:nodesRef.current,ib);}} style={{background:"rgba(16,185,129,.08)",color:"var(--text-sub)",border:"1px solid var(--border)",borderRadius:8,padding:"5px 10px",fontSize:12,fontWeight:500,cursor:saving?"default":"pointer",display:"flex",alignItems:"center",gap:4,opacity:saving?.5:1}}>
-            ↑ Salvar
-          </button>
-        )}
 
         {!readOnly&&activeType==="task"&&[
           {l:"Organizar",i:<Ic.Org s={12}/>,a:organizeTree,t:"Organizar por prioridade"},
@@ -680,7 +670,7 @@ export function AppScreen() {
           <button className="tm-btn" onClick={exitShared} style={{background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.25)",color:"#f87171",borderRadius:8,padding:"5px 11px",fontWeight:600,fontSize:12,cursor:"pointer"}}>← Sair</button>
         )}
 
-        <button className="tm-btn" onClick={toggleDark} title={dark?"Modo claro":"Modo escuro"} style={{background:"rgba(16,185,129,.07)",border:"1px solid var(--border)",cursor:"pointer",borderRadius:8,padding:"5px 7px",display:"flex",alignItems:"center",color:"var(--text-main)"}}>
+        <button className="tm-btn" onClick={toggleDark} title={dark?"Modo claro":"Modo escuro"} style={{background:"rgba(16,185,129,.07)",border:"1px solid var(--border)",cursor:"pointer",borderRadius:8,padding:"5px 7px",display:"flex",alignItems:"center"}}>
           {dark?<Ic.Sun s={14}/>:<Ic.Moon s={14}/>}
         </button>
 
@@ -783,7 +773,6 @@ export function AppScreen() {
               onDelete={()=>deleteNode(node.id)} onComplete={()=>completeNode(node.id)}
               onCyclePriority={()=>cyclePriority(node.id)}
               onAddChild={()=>addNode(node.id)}
-              onEnterCreate={(title)=>enterCreateNode(node.id,title)}
               onDragStart={e=>startDrag(e,node.id)}/>
           ))}
 
@@ -808,17 +797,13 @@ export function AppScreen() {
       </div>
 
       {activeType==="task"&&nodes.length===0&&!readOnly&&(
-        <div style={{position:"fixed",bottom:48,left:sideW,right:0,display:"flex",justifyContent:"center",pointerEvents:"none",zIndex:50,transition:"left .2s"}}>
-          <div style={{background:"var(--bg-glass)",backdropFilter:"blur(14px)",border:"1.5px dashed var(--border)",borderRadius:14,padding:"11px 26px",color:"#059669",fontSize:13,fontWeight:500,fontFamily:"'Inter',sans-serif"}}>
-            Duplo clique no canvas · Enter confirma e cria a próxima ✦
-          </div>
+        <div style={{position:"fixed",bottom:48,left:"50%",transform:"translateX(-50%)",background:"var(--bg-glass)",backdropFilter:"blur(14px)",border:"1.5px dashed var(--border)",borderRadius:14,padding:"11px 26px",pointerEvents:"none",color:"#059669",fontSize:13,fontWeight:500,fontFamily:"'Inter',sans-serif"}}>
+          Duplo clique no canvas para criar uma tarefa ✦
         </div>
       )}
       {activeType==="brain"&&brainNodes.length===0&&!readOnly&&(
-        <div style={{position:"fixed",bottom:48,left:sideW,right:0,display:"flex",justifyContent:"center",pointerEvents:"none",zIndex:50,transition:"left .2s"}}>
-          <div style={{background:"rgba(139,92,246,.08)",backdropFilter:"blur(14px)",border:"1.5px dashed rgba(139,92,246,.35)",borderRadius:14,padding:"11px 26px",color:"#8b5cf6",fontSize:13,fontWeight:500,fontFamily:"'Inter',sans-serif",textAlign:"center"}}>
-            Clique em "Nó" ou duplo clique para criar sua ideia central ✦
-          </div>
+        <div style={{position:"fixed",bottom:48,left:"50%",transform:"translateX(-50%)",background:"rgba(139,92,246,.08)",backdropFilter:"blur(14px)",border:"1.5px dashed rgba(139,92,246,.35)",borderRadius:14,padding:"11px 26px",pointerEvents:"none",color:"#8b5cf6",fontSize:13,fontWeight:500,fontFamily:"'Inter',sans-serif",textAlign:"center"}}>
+          Clique em "Nó" ou duplo clique para criar sua ideia central ✦
         </div>
       )}
 
@@ -826,9 +811,10 @@ export function AppScreen() {
         {Math.round(scale*100)}%
       </div>
 
-      {activeType==="task"&&nodes.length>0&&(
+      {activeType==="task"&&rootNodes.length>0&&(
         <div style={{position:"fixed",bottom:18,left:sideW+16,zIndex:100,background:"var(--bg-glass)",backdropFilter:"blur(12px)",border:"1px solid var(--border)",borderRadius:10,padding:"5px 14px",fontFamily:"'Inter',sans-serif",color:"var(--text-sub)",fontSize:12,display:"flex",gap:12,transition:"left .2s"}}>
-          <span>📋 {nodes.length}</span><span>✓ {completed}</span>
+          <span>📋 {rootNodes.length}{subtaskCount>0?` + ${subtaskCount} sub`:""}</span>
+          <span>✓ {rootCompleted}/{rootNodes.length}</span>
           {overdueCt>0&&<span style={{color:"#ef4444"}}>⚠ {overdueCt}</span>}
         </div>
       )}
