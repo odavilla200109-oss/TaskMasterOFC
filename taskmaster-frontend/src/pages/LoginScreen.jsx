@@ -101,7 +101,7 @@ export function LoginScreen() {
       <div style={{position:"absolute",inset:0,pointerEvents:"none",zIndex:0,backgroundImage:`radial-gradient(circle,rgba(16,185,129,${dark?.07:.16}) 1px,transparent 1px)`,backgroundSize:"26px 26px"}}/>
       {floats.map((f,i)=><FloatNode key={i} {...f} dark={dark}/>)}
 
-      <button onClick={()=>setDark(d=>!d)} style={{position:"fixed",top:18,right:18,zIndex:200,background:"var(--bg-glass)",backdropFilter:"blur(10px)",border:"1px solid var(--border)",borderRadius:10,padding:"7px 9px",display:"flex",alignItems:"center",cursor:"pointer"}}>
+      <button onClick={()=>setDark(d=>!d)} style={{position:"fixed",top:18,right:18,zIndex:200,background:"var(--bg-glass)",backdropFilter:"blur(10px)",border:"1px solid var(--border)",borderRadius:10,padding:"7px 9px",display:"flex",alignItems:"center",cursor:"pointer",color:"var(--text-main)"}}>
         {dark?<Ic.Sun s={15}/>:<Ic.Moon s={15}/>}
       </button>
 
@@ -143,7 +143,7 @@ export function LoginScreen() {
               <span style={{animation:"tmSpin 1s linear infinite",display:"inline-block",fontSize:18}}>⟳</span>Entrando…
             </div>
           ):(
-            <div style={{display:"flex",justifyContent:"center"}}>
+            <div style={{display:"flex",justifyContent:"center",colorScheme:"light"}}>
               <GoogleLogin onSuccess={handleGoogle} onError={()=>setError("Login Google falhou.")} theme={dark?"filled_black":"filled_green"} size="large" locale="pt-BR" width="320"/>
             </div>
           )}
