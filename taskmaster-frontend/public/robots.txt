@@ -1,8 +1,33 @@
+# TaskMaster – robots.txt
+# https://usetaskmaster.vercel.app/
+
 User-agent: *
 Allow: /
 Allow: /terms
 Allow: /privacy
+Allow: /report
+Allow: /ads.txt
 Disallow: /shared/
 Disallow: /api/
+
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 2
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 3
+
+# Ads
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
 
 Sitemap: https://usetaskmaster.vercel.app/sitemap.xml

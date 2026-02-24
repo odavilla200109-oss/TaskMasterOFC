@@ -10,43 +10,55 @@
   <title>TaskMaster – Organize suas ideias e projetos</title>
 
   <meta name="description" content="TaskMaster é a alternativa gratuita ao MindMeister, Notion e Trello. Crie workspaces visuais de tarefas e brainstorm, colabore em tempo real e exporte seus projetos com facilidade."/>
-  <meta name="keywords" content="taskmaster, organização de tarefas, brainstorm online, alternativa mindmeister, alternativa notion, alternativa trello, mapa mental gratuito, gestão de projetos, colaboração em tempo real, produtividade"/>
+  <meta name="keywords" content="taskmaster, organização de tarefas, brainstorm online, alternativa mindmeister, alternativa notion, alternativa trello, mapa mental gratuito, gestão de projetos, colaboração em tempo real, produtividade, workspace visual, kanban gratuito"/>
   <meta name="author" content="TaskMaster"/>
-  <meta name="robots" content="index, follow"/>
-  <meta name="google-site-verification" content="vlPIzzJ9zaZQf-ctBW2407wx7NwLqIxaXbtvScwBVbc"/>
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"/>
+  <meta name="rating" content="general"/>
+  <meta name="language" content="pt-BR"/>
+  <meta name="revisit-after" content="7 days"/>
   <meta name="theme-color" content="#10b981"/>
   <meta name="color-scheme" content="light dark"/>
-  <meta name="google-site-verification" content="lLS4yKrSeO-sln1LDx-YWiGJo2_y-A9R8RKDHCfosgs" />
+
+  <!-- Verificação Google Search Console -->
+  <meta name="google-site-verification" content="vlPIzzJ9zaZQf-ctBW2407wx7NwLqIxaXbtvScwBVbc"/>
+  <meta name="google-site-verification" content="lLS4yKrSeO-sln1LDx-YWiGJo2_y-A9R8RKDHCfosgs"/>
+
   <!-- Canonical -->
   <link rel="canonical" href="https://usetaskmaster.vercel.app/"/>
 
   <!-- ═══════════════════════════════════════
-       FAVICON / ICONS
+       FAVICON / ICONS / MANIFEST
   ════════════════════════════════════════ -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+  <link rel="apple-touch-icon" href="/favicon.svg"/>
+  <link rel="manifest" href="/site.webmanifest"/>
 
   <!-- ═══════════════════════════════════════
-       OPEN GRAPH (Facebook, LinkedIn, etc.)
+       OPEN GRAPH (Facebook, LinkedIn, WhatsApp, etc.)
   ════════════════════════════════════════ -->
-  <meta property="og:type"        content="website"/>
-  <meta property="og:url"         content="https://usetaskmaster.vercel.app/"/>
-  <meta property="og:title"       content="TaskMaster – Organize suas ideias e projetos"/>
-  <meta property="og:description" content="Alternativa gratuita ao MindMeister e Notion. Crie tarefas, brainstorms e colabore em tempo real."/>
-  <meta property="og:image"       content="https://usetaskmaster.vercel.app/og-image.png"/>
-  <meta property="og:locale"      content="pt_BR"/>
-  <meta property="og:site_name"   content="TaskMaster"/>
+  <meta property="og:type"         content="website"/>
+  <meta property="og:url"          content="https://usetaskmaster.vercel.app/"/>
+  <meta property="og:title"        content="TaskMaster – Organize suas ideias e projetos"/>
+  <meta property="og:description"  content="Alternativa gratuita ao MindMeister e Notion. Crie tarefas, brainstorms e colabore em tempo real."/>
+  <meta property="og:image"        content="https://usetaskmaster.vercel.app/og-image.svg"/>
+  <meta property="og:image:width"  content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta property="og:image:alt"    content="TaskMaster – Workspace visual de tarefas e brainstorm"/>
+  <meta property="og:locale"       content="pt_BR"/>
+  <meta property="og:site_name"    content="TaskMaster"/>
 
   <!-- ═══════════════════════════════════════
-       TWITTER CARD
+       TWITTER / X CARD
   ════════════════════════════════════════ -->
   <meta name="twitter:card"        content="summary_large_image"/>
   <meta name="twitter:title"       content="TaskMaster – Organize suas ideias e projetos"/>
   <meta name="twitter:description" content="Alternativa gratuita ao MindMeister, Notion e Trello. Colaboração em tempo real."/>
-  <meta name="twitter:image"       content="https://usetaskmaster.vercel.app/og-image.png"/>
+  <meta name="twitter:image"       content="https://usetaskmaster.vercel.app/og-image.svg"/>
+  <meta name="twitter:image:alt"   content="TaskMaster – Workspace visual"/>
 
   <!-- ═══════════════════════════════════════
        STRUCTURED DATA (JSON-LD)
+       Schema 1: SoftwareApplication
   ════════════════════════════════════════ -->
   <script type="application/ld+json">
   {
@@ -54,9 +66,11 @@
     "@type": "SoftwareApplication",
     "name": "TaskMaster",
     "url": "https://usetaskmaster.vercel.app/",
+    "logo": "https://usetaskmaster.vercel.app/favicon.svg",
     "description": "Alternativa gratuita ao MindMeister, Notion e Trello. Organize tarefas e brainstorms visualmente com colaboração em tempo real.",
     "applicationCategory": "ProductivityApplication",
     "operatingSystem": "Web",
+    "browserRequirements": "Requires JavaScript. Requires HTML5.",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -64,28 +78,50 @@
     },
     "featureList": [
       "Workspaces de tarefas visuais",
-      "Brainstorm com nós conectados",
+      "Brainstorm estilo MindMeister",
       "Colaboração em tempo real",
       "Compartilhamento por link",
-      "Exportação e importação",
+      "Exportação e importação JSON",
       "Modo escuro",
-      "Gratuito"
+      "Gratuito sem cadastro"
     ],
-    "alternativeOf": ["MindMeister", "Notion", "Trello"],
-    "inLanguage": "pt-BR"
+    "inLanguage": "pt-BR",
+    "isAccessibleForFree": true,
+    "keywords": "taskmaster, brainstorm, organização de tarefas, mapa mental, colaboração"
+  }
+  </script>
+
+  <!-- Schema 2: WebSite (habilita Sitelinks Search Box no Google) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "TaskMaster",
+    "url": "https://usetaskmaster.vercel.app/",
+    "description": "Workspace visual gratuito para tarefas e brainstorm com colaboração em tempo real.",
+    "inLanguage": "pt-BR",
+    "publisher": {
+      "@type": "Organization",
+      "name": "TaskMaster",
+      "url": "https://usetaskmaster.vercel.app/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://usetaskmaster.vercel.app/favicon.svg"
+      }
+    }
   }
   </script>
 
   <!-- ═══════════════════════════════════════
        GOOGLE CONSENT MODE v2
        Padrão negado (LGPD compliance)
-       Deve vir ANTES de qualquer tag Google
+       DEVE vir ANTES de qualquer tag Google
   ════════════════════════════════════════ -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
 
-    // Default: tudo negado até o usuário escolher
+    // Default: tudo negado até o usuário escolher (LGPD/GDPR)
     gtag('consent', 'default', {
       analytics_storage:   'denied',
       ad_storage:          'denied',
@@ -94,7 +130,7 @@
       wait_for_update:     600,
     });
 
-    // Restaura escolha anterior (persiste até limpar cache)
+    // Restaura escolha anterior do usuário
     (function() {
       var stored = localStorage.getItem('tm_cookie_consent');
       if (stored === 'granted') {
@@ -108,13 +144,22 @@
     })();
   </script>
 
-  <!-- Google Tag Manager (carrega após Consent Mode) -->
-  <!-- Adicione o GTM ID abaixo quando disponível -->
-  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script> -->
+  <!-- ═══════════════════════════════════════
+       GOOGLE ANALYTICS 4
+       Substitua G-XXXXXXXXXX pelo seu Measurement ID
+       Obtenha em: analytics.google.com
+  ════════════════════════════════════════ -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX', { anonymize_ip: true });
+  </script> -->
 
   <!-- ═══════════════════════════════════════
-       GOOGLE ADSENSE
-       Carrega após Consent Mode estar definido
+       GOOGLE ADSENSE (Auto Ads)
+       Publisher ID: ca-pub-9802615381891784
   ════════════════════════════════════════ -->
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9802615381891784"
@@ -122,11 +167,16 @@
   </script>
 
   <!-- ═══════════════════════════════════════
-       PRECONNECT
+       PERFORMANCE: PRECONNECT + FONTS
   ════════════════════════════════════════ -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link rel="preconnect" href="https://accounts.google.com"/>
+  <link rel="preconnect" href="https://pagead2.googlesyndication.com"/>
+
+  <!-- Google Fonts: Inter + Plus Jakarta Sans -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap"/>
 
   <!-- ═══════════════════════════════════════
        SITEMAP HINT (para crawlers)

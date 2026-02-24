@@ -1,0 +1,28 @@
+{
+  "name": "TaskMaster",
+  "short_name": "TaskMaster",
+  "description": "Organize tarefas e brainstorms visualmente com colaboração em tempo real.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030f09",
+  "theme_color": "#10b981",
+  "orientation": "landscape",
+  "categories": ["productivity", "utilities"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.svg",
+      "sizes": "1200x630",
+      "type": "image/svg+xml",
+      "label": "TaskMaster – Workspace visual"
+    }
+  ]
+}

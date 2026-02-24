@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#030f09"/>
+      <stop offset="100%" stop-color="#051a0f"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#spot)"/>
+
+  <!-- Dot grid pattern -->
+  <pattern id="dots" x="0" y="0" width="26" height="26" patternUnits="userSpaceOnUse">
+    <circle cx="1" cy="1" r="1" fill="#10b981" opacity="0.07"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+
+  <!-- Top glow bar -->
+  <rect x="0" y="0" width="1200" height="3" fill="url(#glow)"/>
+  <rect x="0" y="0" width="1200" height="3" fill="#10b981" opacity="0.6"/>
+
+  <!-- Mock node cards (decorative, left side) -->
+  <g opacity="0.45">
+    <!-- Card 1 -->
+    <rect x="54" y="160" width="210" height="88" rx="14" fill="#0d1f17" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.5"/>
+    <rect x="54" y="160" width="4" height="88" rx="2" fill="#10b981"/>
+    <rect x="72" y="180" width="120" height="8" rx="4" fill="#10b981" opacity="0.3"/>
+    <rect x="72" y="196" width="80" height="6" rx="3" fill="#6ee7b7" opacity="0.2"/>
+    <circle cx="236" cy="232" r="8" fill="none" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.7"/>
+    <!-- Card 2 -->
+    <rect x="54" y="270" width="210" height="72" rx="14" fill="#0d1f17" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.3"/>
+    <rect x="54" y="270" width="4" height="72" rx="2" fill="#f59e0b"/>
+    <rect x="72" y="288" width="100" height="7" rx="3" fill="#d1fae5" opacity="0.2"/>
+    <rect x="72" y="303" width="60" height="5" rx="3" fill="#6ee7b7" opacity="0.15"/>
+    <!-- Card 3 (completed) -->
+    <rect x="54" y="364" width="210" height="72" rx="14" fill="#0d1f17" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.3"/>
+    <rect x="54" y="364" width="4" height="72" rx="2" fill="#10b981" opacity="0.5"/>
+    <rect x="72" y="382" width="90" height="7" rx="3" fill="#6ee7b7" opacity="0.15"/>
+    <circle cx="236" cy="400" r="8" fill="#10b981" opacity="0.8"/>
+    <path d="M231 400 L234 403 L241 396" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Mock brain/mindmap nodes (decorative, right side) -->
+  <g opacity="0.38">
+    <!-- Root node -->
+    <rect x="940" y="240" width="170" height="60" rx="14" fill="#0d1f17" stroke="#8b5cf6" stroke-width="2"/>
+    <rect x="965" y="262" width="80" height="7" rx="3" fill="#8b5cf6" opacity="0.5"/>
+    <rect x="965" y="277" width="55" height="5" rx="3" fill="#c4b5fd" opacity="0.3"/>
+    <!-- Connection lines -->
+    <path d="M1110 270 C1135 270 1135 220 1160 220" stroke="#8b5cf6" stroke-width="1.5" fill="none" opacity="0.5"/>
+    <path d="M1110 290 C1135 290 1135 340 1160 340" stroke="#10b981" stroke-width="1.5" fill="none" opacity="0.5"/>
+    <!-- Child nodes right -->
+    <rect x="1160" y="200" width="130" height="40" rx="9" fill="#0d1f17" stroke="#8b5cf6" stroke-width="1.2" stroke-opacity="0.5"/>
+    <rect x="1175" y="216" width="70" height="6" rx="3" fill="#c4b5fd" opacity="0.35"/>
+    <rect x="1160" y="320" width="130" height="40" rx="9" fill="#0d1f17" stroke="#10b981" stroke-width="1.2" stroke-opacity="0.5"/>
+    <rect x="1175" y="336" width="55" height="6" rx="3" fill="#6ee7b7" opacity="0.35"/>
+  </g>
+
+  <!-- Center content -->
+  <!-- Logo pill -->
+  <rect x="504" y="148" width="192" height="30" rx="15" fill="#10b981" fill-opacity="0.1" stroke="#10b981" stroke-width="1" stroke-opacity="0.3"/>
+  <circle cx="524" cy="163" r="5" fill="#10b981" opacity="0.8"/>
+  <text x="537" y="168" font-family="'Inter', Arial, sans-serif" font-size="11" font-weight="700" fill="#10b981" letter-spacing="2" text-transform="uppercase" opacity="0.9">WORKSPACE VISUAL</text>
+
+  <!-- Main title -->
+  <text x="600" y="260" font-family="'Plus Jakarta Sans', 'Arial Black', Arial, sans-serif" font-size="82" font-weight="900" fill="#f0fdf4" text-anchor="middle" letter-spacing="-3" opacity="0.97">TaskMaster</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="316" font-family="'Inter', Arial, sans-serif" font-size="22" font-weight="400" fill="#6ee7b7" text-anchor="middle" opacity="0.8">Organize ideias. Colabore em tempo real.</text>
+
+  <!-- Feature pills -->
+  <g>
+    <!-- Pill 1 -->
+    <rect x="310" y="366" width="138" height="30" rx="15" fill="#10b981" fill-opacity="0.1" stroke="#10b981" stroke-width="1" stroke-opacity="0.35"/>
+    <text x="379" y="386" font-family="'Inter', Arial, sans-serif" font-size="12" fill="#6ee7b7" text-anchor="middle" opacity="0.9">✓ Gratuito</text>
+    <!-- Pill 2 -->
+    <rect x="462" y="366" width="168" height="30" rx="15" fill="#8b5cf6" fill-opacity="0.1" stroke="#8b5cf6" stroke-width="1" stroke-opacity="0.35"/>
+    <text x="546" y="386" font-family="'Inter', Arial, sans-serif" font-size="12" fill="#c4b5fd" text-anchor="middle" opacity="0.9">✦ Brainstorm</text>
+    <!-- Pill 3 -->
+    <rect x="644" y="366" width="188" height="30" rx="15" fill="#10b981" fill-opacity="0.1" stroke="#10b981" stroke-width="1" stroke-opacity="0.35"/>
+    <text x="738" y="386" font-family="'Inter', Arial, sans-serif" font-size="12" fill="#6ee7b7" text-anchor="middle" opacity="0.9">⚡ Tempo Real</text>
+    <!-- Pill 4 -->
+    <rect x="846" y="366" width="164" height="30" rx="15" fill="#f59e0b" fill-opacity="0.08" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.3"/>
+    <text x="928" y="386" font-family="'Inter', Arial, sans-serif" font-size="12" fill="#fcd34d" text-anchor="middle" opacity="0.9">🔗 Compartilhar</text>
+  </g>
+
+  <!-- URL / domain -->
+  <text x="600" y="490" font-family="'Inter', Arial, sans-serif" font-size="15" font-weight="500" fill="#10b981" text-anchor="middle" opacity="0.5">usetaskmaster.vercel.app</text>
+
+  <!-- Bottom border glow -->
+  <rect x="0" y="627" width="1200" height="3" fill="#10b981" opacity="0.35"/>
+</svg>
