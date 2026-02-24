@@ -26,15 +26,19 @@ export function collides(ax,ay,aw,ah, bx,by,bw,bh) {
 }
 
 export function freePos(nodes, sx, sy, child=false) {
-  const W = child?NODE_W_CHILD:NODE_W, H = child?NODE_H_CHILD:NODE_H;
-  let x=sx, y=sy, a=0;
-  while (a<300) {
-    if (!nodes.some(n=>collides(n.x,n.y,nW(n),nH(n),x,y,W,H))) return {x,y};
-    x += W+NODE_GAP_X;
-    if (x>sx+(W+NODE_GAP_X)*5) { x=sx; y+=H+NODE_GAP_Y; }
-    a++;
+  const W=child?NODE_W_CHILD:NODE_W, H=child?NODE_H_CHILD:NODE_H;
+  const stepX=W+NODE_GAP_X, stepY=H+NODE_GAP_Y;
+  if(!nodes.some(n=>collides(n.x,n.y,nW(n),nH(n),sx,sy,W,H))) return {x:sx,y:sy};
+  for(let ring=1; ring<=12; ring++){
+    for(let dx=-ring; dx<=ring; dx++){
+      for(let dy=-ring; dy<=ring; dy++){
+        if(Math.abs(dx)!==ring && Math.abs(dy)!==ring) continue;
+        const x=sx+dx*stepX, y=sy+dy*stepY;
+        if(!nodes.some(n=>collides(n.x,n.y,nW(n),nH(n),x,y,W,H))) return {x,y};
+      }
+    }
   }
-  return {x,y};
+  return {x:sx,y:sy};
 }
 
 export function isOverdue(d) { return d && new Date(d)<new Date(); }

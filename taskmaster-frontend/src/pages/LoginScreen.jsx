@@ -105,7 +105,7 @@ export function LoginScreen() {
         {dark?<Ic.Sun s={15}/>:<Ic.Moon s={15}/>}
       </button>
 
-      <main style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"60px 20px 40px",position:"relative",zIndex:10,gap:44}}>
+      <main style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 20px 32px",position:"relative",zIndex:10,gap:24}}>
 
         {/* Hero */}
         <div style={{textAlign:"center"}}>

@@ -13,8 +13,10 @@ export function BrainNodeCard({
   const inputRef = useRef(null);
   const cardRef = useRef(null);
   const pickerRef = useRef(null);
+  const hoverTimer = useRef(null);
 
   useEffect(() => { if (isEditing) inputRef.current?.focus(); }, [isEditing]);
+  useEffect(() => () => clearTimeout(hoverTimer.current), []);
 
   // Close color picker when clicking outside both card and picker
   useEffect(() => {
@@ -59,8 +61,8 @@ export function BrainNodeCard({
     <div
       ref={cardRef}
       onMouseDown={e => { onSelect(); onDragStart(e); }}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      onMouseEnter={() => { clearTimeout(hoverTimer.current); setHov(true); }}
+      onMouseLeave={() => { hoverTimer.current = setTimeout(() => setHov(false), 120); }}
       className={`tm-brain-node${isNew ? " tm-node-new" : ""}`}
       style={{
         position: "absolute",

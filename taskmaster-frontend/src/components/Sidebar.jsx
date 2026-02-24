@@ -5,7 +5,11 @@ import { MAX_WS } from "../config/constants";
 export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,membersMap,collapsed,onToggle}) {
   const [renaming,setRenaming]=useState(null);
   const [renameVal,setRenameVal]=useState("");
+  const [creating,setCreating]=useState(null); // null | "task" | "brain"
+  const [createVal,setCreateVal]=useState("");
+  const [pendingDel,setPendingDel]=useState(null); // canvas id
   const clickTimer=useRef(null);
+  const createInputRef=useRef(null);
 
   const W=collapsed?40:224;
 
@@ -29,6 +33,25 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
     }
     setRenaming(id);
     setRenameVal(name);
+  };
+
+  const startCreating=(type)=>{
+    setCreating(type);
+    setCreateVal("");
+    setTimeout(()=>createInputRef.current?.focus(),50);
+  };
+
+  const submitCreate=()=>{
+    const name=createVal.trim();
+    if(!name)return;
+    onCreate(creating,name);
+    setCreating(null);
+    setCreateVal("");
+  };
+
+  const cancelCreate=()=>{
+    setCreating(null);
+    setCreateVal("");
   };
 
   return (
@@ -58,49 +81,81 @@ export function Sidebar({canvases,activeId,onSelect,onCreate,onDelete,onRename,m
           {canvases.map(c=>{
             const active=c.id===activeId;
             const members=membersMap[c.id]||0;
+            const isPendingDel=pendingDel===c.id;
             return (
-              <div key={c.id} style={{display:"flex",alignItems:"center",gap:3,borderRadius:10,background:active?"rgba(16,185,129,.11)":"transparent",border:active?"1px solid rgba(16,185,129,.25)":"1px solid transparent",padding:"2px 4px",transition:"all .15s"}}>
-                <div style={{flexShrink:0,width:18,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  {c.type==="brain"
-                    ?<Ic.Brain s={13} c={active?"#10b981":"var(--text-muted)"}/>
-                    :<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" stroke={active?"#10b981":"var(--text-muted)"} strokeWidth="1.3"/><path d="M4 6H8M6 4V8" stroke={active?"#10b981":"var(--text-muted)"} strokeWidth="1.3" strokeLinecap="round"/></svg>
-                  }
+              <div key={c.id}>
+                <div style={{display:"flex",alignItems:"center",gap:3,borderRadius:10,background:active?"rgba(16,185,129,.11)":"transparent",border:active?"1px solid rgba(16,185,129,.25)":"1px solid transparent",padding:"2px 4px",transition:"all .15s"}}>
+                  <div style={{flexShrink:0,width:18,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    {c.type==="brain"
+                      ?<Ic.Brain s={13} c={active?"#10b981":"var(--text-muted)"}/>
+                      :<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" stroke={active?"#10b981":"var(--text-muted)"} strokeWidth="1.3"/><path d="M4 6H8M6 4V8" stroke={active?"#10b981":"var(--text-muted)"} strokeWidth="1.3" strokeLinecap="round"/></svg>
+                    }
+                  </div>
+                  {renaming===c.id?(
+                    <input autoFocus value={renameVal} onChange={e=>setRenameVal(e.target.value)}
+                      onBlur={()=>{onRename(c.id,renameVal);setRenaming(null);}}
+                      onKeyDown={e=>{if(e.key==="Enter"){onRename(c.id,renameVal);setRenaming(null);}if(e.key==="Escape")setRenaming(null);}}
+                      onMouseDown={e=>e.stopPropagation()}
+                      style={{flex:1,border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontSize:12.5,color:"var(--text-main)",padding:"6px 3px"}}/>
+                  ):(
+                    <button
+                      onClick={()=>handleItemClick(c.id)}
+                      onDoubleClick={()=>handleItemDblClick(c.id,c.name)}
+                      style={{flex:1,background:"none",border:"none",cursor:"pointer",textAlign:"left",fontFamily:"'Inter',sans-serif",fontSize:12.5,fontWeight:active?600:400,color:active?"#10b981":"var(--text-main)",padding:"6px 4px",borderRadius:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {c.name}
+                    </button>
+                  )}
+                  {c.hasViewIndefLock&&<span title="Link ∞ ativo" style={{flexShrink:0,fontSize:8.5,color:"#f59e0b",opacity:.8}}>∞</span>}
+                  {members>0&&<span style={{fontSize:9.5,color:"#10b981",background:"rgba(16,185,129,.12)",borderRadius:20,padding:"1px 5px",fontWeight:600,flexShrink:0,fontFamily:"'Inter',sans-serif"}}>{members}</span>}
+                  {canvases.length>1&&(
+                    <button onClick={()=>setPendingDel(isPendingDel?null:c.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#f87171",display:"flex",alignItems:"center",padding:"3px",borderRadius:5,opacity:.4,flexShrink:0,transition:"opacity .15s"}}
+                      onMouseEnter={e=>e.currentTarget.style.opacity="1"}
+                      onMouseLeave={e=>e.currentTarget.style.opacity="0.4"}>
+                      <Ic.Trash s={10}/>
+                    </button>
+                  )}
                 </div>
-                {renaming===c.id?(
-                  <input autoFocus value={renameVal} onChange={e=>setRenameVal(e.target.value)}
-                    onBlur={()=>{onRename(c.id,renameVal);setRenaming(null);}}
-                    onKeyDown={e=>{if(e.key==="Enter"){onRename(c.id,renameVal);setRenaming(null);}if(e.key==="Escape")setRenaming(null);}}
-                    onMouseDown={e=>e.stopPropagation()}
-                    style={{flex:1,border:"none",outline:"none",background:"transparent",fontFamily:"'Inter',sans-serif",fontSize:12.5,color:"var(--text-main)",padding:"6px 3px"}}/>
-                ):(
-                  <button
-                    onClick={()=>handleItemClick(c.id)}
-                    onDoubleClick={()=>handleItemDblClick(c.id,c.name)}
-                    style={{flex:1,background:"none",border:"none",cursor:"pointer",textAlign:"left",fontFamily:"'Inter',sans-serif",fontSize:12.5,fontWeight:active?600:400,color:active?"#10b981":"var(--text-main)",padding:"6px 4px",borderRadius:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                    {c.name}
-                  </button>
-                )}
-                {c.hasViewIndefLock&&<span title="Link ∞ ativo" style={{flexShrink:0,fontSize:8.5,color:"#f59e0b",opacity:.8}}>∞</span>}
-                {members>1&&<span style={{fontSize:9.5,color:"#10b981",background:"rgba(16,185,129,.12)",borderRadius:20,padding:"1px 5px",fontWeight:600,flexShrink:0,fontFamily:"'Inter',sans-serif"}}>{members}</span>}
-                {canvases.length>1&&(
-                  <button onClick={()=>onDelete(c.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#f87171",display:"flex",alignItems:"center",padding:"3px",borderRadius:5,opacity:.4,flexShrink:0,transition:"opacity .15s"}}
-                    onMouseEnter={e=>e.currentTarget.style.opacity="1"}
-                    onMouseLeave={e=>e.currentTarget.style.opacity="0.4"}>
-                    <Ic.Trash s={10}/>
-                  </button>
+                {isPendingDel&&(
+                  <div style={{display:"flex",alignItems:"center",gap:4,padding:"4px 6px",background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.2)",borderRadius:9,margin:"2px 2px 2px"}}>
+                    <span style={{flex:1,fontFamily:"'Inter',sans-serif",fontSize:11,color:"#f87171"}}>Excluir?</span>
+                    <button onClick={()=>{onDelete(c.id);setPendingDel(null);}} style={{background:"#ef4444",color:"white",border:"none",borderRadius:6,padding:"2px 8px",fontSize:11,cursor:"pointer",fontWeight:700,fontFamily:"'Inter',sans-serif"}}>Sim</button>
+                    <button onClick={()=>setPendingDel(null)} style={{background:"none",border:"1px solid var(--border)",borderRadius:6,padding:"2px 7px",fontSize:11,cursor:"pointer",color:"var(--text-muted)",fontFamily:"'Inter',sans-serif"}}>Não</button>
+                  </div>
                 )}
               </div>
             );
           })}
 
-          <button onClick={()=>onCreate("task")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{marginTop:8,background:"rgba(16,185,129,.07)",border:"1.5px dashed rgba(16,185,129,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:500,color:"#10b981",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-            <Ic.Plus s={11}/>Tarefa
-          </button>
-          <button onClick={()=>onCreate("brain")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{background:"rgba(139,92,246,.07)",border:"1.5px dashed rgba(139,92,246,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:500,color:"#8b5cf6",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-            <Ic.Brain s={12} c="#8b5cf6"/>Brainstorm
-          </button>
-          {canvases.length>=MAX_WS&&<div style={{fontSize:10.5,color:"var(--text-muted)",textAlign:"center",fontFamily:"'Inter',sans-serif",padding:"3px 6px",lineHeight:1.5}}>Limite de {MAX_WS} atingido</div>}
-          <div style={{fontFamily:"'Inter',sans-serif",fontSize:9.5,color:"var(--text-muted)",textAlign:"center",paddingTop:2}}>Duplo clique para renomear</div>
+          {creating?(
+            <div style={{display:"flex",flexDirection:"column",gap:5,padding:"8px 6px",background:"rgba(16,185,129,.05)",border:"1px solid rgba(16,185,129,.25)",borderRadius:10,marginTop:6}}>
+              <div style={{fontFamily:"'Inter',sans-serif",fontSize:10.5,color:"#10b981",fontWeight:600,padding:"0 2px"}}>
+                {creating==="brain"?"Novo Brainstorm":"Nova Tarefa"}
+              </div>
+              <input
+                ref={createInputRef}
+                value={createVal}
+                onChange={e=>setCreateVal(e.target.value)}
+                onKeyDown={e=>{if(e.key==="Enter")submitCreate();if(e.key==="Escape")cancelCreate();}}
+                placeholder="Nome do workspace…"
+                style={{border:"1px solid var(--border)",borderRadius:8,padding:"6px 8px",fontFamily:"'Inter',sans-serif",fontSize:12.5,background:"var(--bg-card)",color:"var(--text-main)",outline:"none",width:"100%",boxSizing:"border-box"}}
+              />
+              <div style={{display:"flex",gap:4}}>
+                <button onClick={submitCreate} style={{flex:1,background:"#10b981",color:"white",border:"none",borderRadius:7,padding:"5px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>Criar</button>
+                <button onClick={cancelCreate} style={{flex:1,background:"none",border:"1px solid var(--border)",borderRadius:7,padding:"5px",fontSize:12,cursor:"pointer",color:"var(--text-muted)",fontFamily:"'Inter',sans-serif"}}>Cancelar</button>
+              </div>
+            </div>
+          ):(
+            <>
+              <button onClick={()=>startCreating("task")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{marginTop:8,background:"rgba(16,185,129,.07)",border:"1.5px dashed rgba(16,185,129,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:500,color:"#10b981",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                <Ic.Plus s={11}/>Tarefa
+              </button>
+              <button onClick={()=>startCreating("brain")} disabled={canvases.length>=MAX_WS} className="tm-btn" style={{background:"rgba(139,92,246,.07)",border:"1.5px dashed rgba(139,92,246,.28)",borderRadius:10,padding:"8px",cursor:canvases.length>=MAX_WS?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:500,color:"#8b5cf6",textAlign:"center",opacity:canvases.length>=MAX_WS?.4:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                <Ic.Brain s={12} c="#8b5cf6"/>Brainstorm
+              </button>
+              {canvases.length>=MAX_WS&&<div style={{fontSize:10.5,color:"var(--text-muted)",textAlign:"center",fontFamily:"'Inter',sans-serif",padding:"3px 6px",lineHeight:1.5}}>Limite de {MAX_WS} atingido</div>}
+              <div style={{fontFamily:"'Inter',sans-serif",fontSize:9.5,color:"var(--text-muted)",textAlign:"center",paddingTop:2}}>Duplo clique para renomear</div>
+            </>
+          )}
         </>
       )}
     </div>

@@ -202,23 +202,29 @@ export function AppScreen() {
   // ── Switch canvas ──
   const switchCanvas=useCallback(async id=>{
     setActiveId(id);setLoading(true);setSelectedId(null);setPast([]);setFuture([]);
+    setMembersMap(m=>({...m,[id]:0}));
     const c=canvases.find(x=>x.id===id);const type=c?.type||"task";setActiveType(type);
     if(type==="brain"){const bn=await api(`/api/canvases/${id}/brain-nodes`);setBrainNodes(bn);setNodes([]);}
     else{const n=await api(`/api/canvases/${id}/nodes`);setNodes(n);setBrainNodes([]);}
     setLoading(false);
   },[canvases]);
 
-  const createCanvas=async type=>{
-    const name=prompt(`Nome do workspace de ${type==="brain"?"brainstorm":"tarefas"}:`,"Novo Workspace");
-    if(!name)return;
-    try{const c=await api("/api/canvases",{method:"POST",body:{name,type}});setCanvases(p=>[...p,c]);switchCanvas(c.id);}
-    catch(e){alert(e.message);}
+  const createCanvas=async(type,name)=>{
+    if(!name||!name.trim())return;
+    try{
+      const c=await api("/api/canvases",{method:"POST",body:{name:name.trim(),type}});
+      setCanvases(p=>[...p,c]);
+      setActiveId(c.id);setActiveType(type);
+      setNodes([]);setBrainNodes([]);setPast([]);setFuture([]);setSelectedId(null);
+    }catch(_){}
   };
   const deleteCanvas=async id=>{
-    if(!confirm("Excluir workspace?"))return;
-    await api(`/api/canvases/${id}`,{method:"DELETE"});
+    try{await api(`/api/canvases/${id}`,{method:"DELETE"});}catch(_){}
     const next=canvases.filter(c=>c.id!==id);setCanvases(next);
-    if(activeId===id&&next.length>0)switchCanvas(next[0].id);
+    if(activeId===id){
+      if(next.length>0)switchCanvas(next[0].id);
+      else{setActiveId(null);setNodes([]);setBrainNodes([]);}
+    }
   };
   const renameCanvas=async(id,name)=>{
     if(!name.trim())return;
@@ -499,7 +505,7 @@ export function AppScreen() {
     const rect=wrapRef.current.getBoundingClientRect();
     const x=(e.clientX-rect.left-panRef.current.x)/scaleRef.current;
     const y=(e.clientY-rect.top-panRef.current.y)/scaleRef.current;
-    if(typeRef.current==="brain")addBrainNode(null,x,y);
+    if(typeRef.current==="brain")addBrainNode(null,x-BRAIN_ROOT_W/2,y-BRAIN_ROOT_H/2);
     else addNode(null,x-NODE_W/2,y-NODE_H/2);
   },[addNode,addBrainNode,readOnly]);
 
@@ -549,7 +555,10 @@ export function AppScreen() {
       .filter(c=>c.parent);
   },[visibleBrainNodes,activeType]);
 
+  const rootNodes=nodes.filter(n=>!n.parentId);
   const completed=nodes.filter(n=>n.completed).length;
+  const rootCompleted=rootNodes.filter(n=>n.completed).length;
+  const subtaskCount=nodes.filter(n=>!!n.parentId).length;
   const overdueCt=nodes.filter(n=>isOverdue(n.dueDate)&&!n.completed).length;
   const isShared=!!shareToken;
   const hasSidebar=!isShared&&canvases.length>0&&!!user;
@@ -595,7 +604,7 @@ export function AppScreen() {
 
         {activeType==="brain"&&<span style={{fontSize:10.5,background:"rgba(139,92,246,.12)",border:"1px solid rgba(139,92,246,.3)",color:"#8b5cf6",borderRadius:20,padding:"3px 10px",fontWeight:700,letterSpacing:.5,display:"flex",alignItems:"center",gap:4}}><Ic.Brain s={11} c="#8b5cf6"/>Brainstorm</span>}
         {isShared&&<span style={{fontSize:10.5,background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.3)",color:"#10b981",borderRadius:20,padding:"3px 10px",fontWeight:700,letterSpacing:.5}}>{readOnly?"SOMENTE LEITURA":"✦ EDIÇÃO COLABORATIVA"}</span>}
-        {activeMembers>1&&!isShared&&<span style={{fontSize:10.5,background:"rgba(16,185,129,.08)",border:"1px solid rgba(16,185,129,.22)",color:"#10b981",borderRadius:20,padding:"3px 10px",fontWeight:600,display:"flex",alignItems:"center",gap:4}}><span style={{width:5,height:5,borderRadius:"50%",background:"#10b981",animation:"tmPulse 2s ease infinite",display:"inline-block"}}/>{activeMembers} online</span>}
+        {activeMembers>0&&!isShared&&<span style={{fontSize:10.5,background:"rgba(16,185,129,.08)",border:"1px solid rgba(16,185,129,.22)",color:"#10b981",borderRadius:20,padding:"3px 10px",fontWeight:600,display:"flex",alignItems:"center",gap:4}}><span style={{width:5,height:5,borderRadius:"50%",background:"#10b981",animation:"tmPulse 2s ease infinite",display:"inline-block"}}/>{activeMembers} online</span>}
 
         {isShared&&readOnly&&(
           <button onClick={()=>setShowPwd(true)} className="tm-btn" style={{background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.28)",color:"#f59e0b",borderRadius:9,padding:"5px 10px",display:"flex",alignItems:"center",gap:4,cursor:"pointer",fontSize:12,fontWeight:600}}>
@@ -802,9 +811,10 @@ export function AppScreen() {
         {Math.round(scale*100)}%
       </div>
 
-      {activeType==="task"&&nodes.length>0&&(
+      {activeType==="task"&&rootNodes.length>0&&(
         <div style={{position:"fixed",bottom:18,left:sideW+16,zIndex:100,background:"var(--bg-glass)",backdropFilter:"blur(12px)",border:"1px solid var(--border)",borderRadius:10,padding:"5px 14px",fontFamily:"'Inter',sans-serif",color:"var(--text-sub)",fontSize:12,display:"flex",gap:12,transition:"left .2s"}}>
-          <span>📋 {nodes.length}</span><span>✓ {completed}</span>
+          <span>📋 {rootNodes.length}{subtaskCount>0?` + ${subtaskCount} sub`:""}</span>
+          <span>✓ {rootCompleted}/{rootNodes.length}</span>
           {overdueCt>0&&<span style={{color:"#ef4444"}}>⚠ {overdueCt}</span>}
         </div>
       )}
